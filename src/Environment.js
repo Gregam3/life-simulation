@@ -29,19 +29,19 @@ const deepClone = obj => Object.assign({}, obj);
 
 const TILES = {
     Grass: {
-        characters: ['M'],
+        characters: ['🌱'],
         color: 'green'
     },
     Water: {
-        characters: ['~'],
+        characters: ['💧'],
         color: 'blue'
     },
-    Tree: {
-        characters: ['T'],
+    Fruit: {
+        characters: ['🍎'],
         color: 'brown'
     },
     Agent: {
-        characters: ['🙂'],
+        characters: ['🐒'],
         color: 'red',
         fontSize: 15
     }
@@ -86,7 +86,7 @@ const   DIRECTIONS = {
     }
 }
 
-const safeUpdateCells = (cells, x, y, newTile) => {
+export const safeUpdateCells = (cells, x, y, newTile) => {
     if (x > cells[0].length - 1 || y > cells.length - 1 || x < 0 || y < 0) return null;
 
     let clonedCells = cells;
@@ -94,7 +94,12 @@ const safeUpdateCells = (cells, x, y, newTile) => {
 
     clonedCells[y][x].type = newTile;
     return clonedCells;
+}
 
+export const safeGetCell = (cells, x, y) => {
+    if (x > cells[0].length - 1 || y > cells.length - 1 || x < 0 || y < 0) return null;
+
+    return cells[y][x];
 }
 
 //generation parameters
@@ -168,7 +173,7 @@ class Environment {
         return cells.map(rows => rows.map(cell => {
             const r = random(TREE_CHANCE_ONE_IN_X);
             if (cell.type === TILES.Grass && r === TREE_CHANCE_ONE_IN_X) {
-                cell.type = TILES.Tree;
+                cell.type = TILES.Fruit;
             }
             return cell;
         }));

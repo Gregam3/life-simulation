@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  font-family: monospace, monospace;
 }
 
 .App-logo {
@@ -35,4 +36,11 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.uniform-spacing-cell {
+  text-align: center;
+  vertical-align: middle;
+  width: 50px;
+  height: 20px;
 }

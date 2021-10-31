@@ -9,7 +9,7 @@ const range = (i) => {
     return [...Array(i).keys()];
 }
 
-const cells = new Environment(50, 20).generateEnvironment();
+const cells = new Environment(25, 10).generateEnvironment();
 const behaviourController = new BehaviourController();
 
 class App extends React.Component {
@@ -21,7 +21,7 @@ class App extends React.Component {
     }
 
     componentDidMount() {
-        this.interval = setInterval(() => this.tick(), 100000);
+        this.interval = setInterval(() => this.tick(), 2000);
     }
 
     tick() {

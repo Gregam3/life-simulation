@@ -16,8 +16,9 @@ export default class BehaviourController {
         });
 
         agentMovements.forEach(agentMovement => {
-            cells[agentMovement.agent.x][agentMovement.agent.y].type = TILES.Grass;
-            cells[agentMovement.agent.x + agentMovement.movement.xChange][agentMovement.agent.y + agentMovement.movement.yChange].type = TILES.Agent;
+            console.log('agentMovement', agentMovement)
+            cells[agentMovement.agent.y][agentMovement.agent.x].type = TILES.Grass;
+            cells[agentMovement.agent.y + agentMovement.movement.yChange][agentMovement.agent.x + agentMovement.movement.xChange].type = TILES.Agent;
         });
 
         return cells;
@@ -26,9 +27,10 @@ export default class BehaviourController {
 
     searchForFood(agent, cells) {
         const cellsInSenseRange = this.generateCellsInSightRange(agent, cells, 2);
-        console.log(cellsInSenseRange)
 
-        const foodCellsInRange = cellsInSenseRange.filter(cell => cell.isEdible);
+        const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.isEdible);
+
+        console.log('food', foodCellsInRange)
 
         if (foodCellsInRange.length > 0) {
             return this.navigateTowards(agent, cells, foodCellsInRange.random());
@@ -41,17 +43,9 @@ export default class BehaviourController {
 
     generateCellsInSightRange = (agent, cells, sightLength) => {
         const product = cartesianProduct(Util.trueRange(sightLength, sightLength * -1));
-        console.log('product', product);
+        console.log('product', product, 'agent', agent);
 
-        console.log('movements', product.map(positionChange => safeGetCell(
-                cells,
-                agent.x + positionChange.xChange,
-                agent.y + positionChange.yChange
-            )
-        ).filter(cell => cell !== null));
-
-        return cartesianProduct(Util.range(sightLength, sightLength * -1))
-            .map(positionChange => safeGetCell(
+        return product.flatMap(positionChange => safeGetCell(
                     cells,
                     agent.x + positionChange.xChange,
                     agent.y + positionChange.yChange
@@ -63,11 +57,11 @@ export default class BehaviourController {
         let xChange = 0;
         let yChange = 0;
 
-        if (agent.x > targetCell.x) xChange++;
-        else if (agent.x < targetCell.x) xChange--;
+        if (agent.x < targetCell.x) xChange++;
+        else if (agent.x > targetCell.x) xChange--;
 
-        if (agent.y > targetCell.y) yChange++;
-        else if (agent.y < targetCell.y) yChange--;
+        if (agent.y < targetCell.y) yChange++;
+        else if (agent.y > targetCell.y) yChange--;
 
         return {
             xChange,

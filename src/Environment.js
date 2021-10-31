@@ -104,7 +104,7 @@ class Environment {
 
     createGrassPlaneCells() {
         console.log(this.height, this.width)
-        return range(this.height).map(x => range(this.width).map(y => {
+        return range(this.height).map(y => range(this.width).map(x => {
             return {
                 type: TILES.Grass,
                 x: x, y: y

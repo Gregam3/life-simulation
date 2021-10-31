@@ -6,12 +6,21 @@ const {safeGetCell} = require("./Environment");
 const cartesianProduct = items =>
     items.flatMap(outerIndex => items.flatMap(innerIndex => [{xChange: innerIndex, yChange: outerIndex}]));
 
+const visionRange = cartesianProduct(Util.trueRange(2, -2));
+const movementRange = cartesianProduct(Util.trueRange(1, -1));
+
 export default class BehaviourController {
-    act(agents, cells) {
-        const agentMovements = agents.map(agent => {
+    act(agentCells, cells) {
+        agentCells.forEach(agentCell => {
+            agentCell.agent.hunger -= 0.1
+            if (agentCell.agent.hunger < 0) agentCell.type = TILES.Dead
+        });
+
+
+        const agentMovements = agentCells.filter(agentCell => agentCell.agent.hunger > 0).map(agentCell => {
             return {
-                agent,
-                movement: this.searchForFood(agent, cells)
+                agent: agentCell,
+                movement: this.searchForFood(agentCell, cells)
             }
         });
 
@@ -36,21 +45,26 @@ export default class BehaviourController {
             return this.navigateTowards(agent, cells, foodCellsInRange.random());
         }
 
-        return {
-            xChange: 0, yChange: 0
-        }
+        return this.navigateTowards(agent, cells, this.generateCellsInMovementRange(agent, cells).random());
+
     }
 
     generateCellsInSightRange = (agent, cells, sightLength) => {
-        const product = cartesianProduct(Util.trueRange(sightLength, sightLength * -1));
-        console.log('product', product, 'agent', agent);
-
-        return product.flatMap(positionChange => safeGetCell(
+        return visionRange.flatMap(positionChange => safeGetCell(
                     cells,
                     agent.x + positionChange.xChange,
                     agent.y + positionChange.yChange
                 )
             ).filter(cell => cell !== null);
+    }
+
+    generateCellsInMovementRange = (agent, cells, sightLength) => {
+        return movementRange.flatMap(positionChange => safeGetCell(
+                cells,
+                agent.x + positionChange.xChange,
+                agent.y + positionChange.yChange
+            )
+        ).filter(cell => cell !== null);
     }
 
     navigateTowards(agent, cells, targetCell) {

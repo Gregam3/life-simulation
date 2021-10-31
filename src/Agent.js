@@ -17,12 +17,15 @@ export const TILES = {
     Agent: {
         characters: ['🐒'],
         color: 'red',
-        fontSize: 15,
         obstructs: true
+    },
+    Dead: {
+        characters: ['💀'],
+        color: 'white'
     }
 }
 
-class Agent {
+export default class Agent {
     constructor(name, x, y, hunger) {
         this.name = name;
         this.x = x;

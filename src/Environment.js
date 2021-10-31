@@ -153,7 +153,7 @@ class Environment {
                     console.info('Valid direction', direction.name, 'New x y', x, y);
 
                     cells = safeUpdateCells(cells, x, y, TILES.Water);
-                    validDirections = DIRECTIONS;
+                    validDirections = deepClone(DIRECTIONS);
                 }
 
                 direction = validDirections[randomKey(validDirections)];

@@ -3,22 +3,24 @@ import './App.css';
 import React from "react";
 import Environment from "./Environment";
 
-
 const range = (i) => {
     return [...Array(i).keys()];
 }
+
+const environment = new Environment(50, 10);
+const cells = environment.generateEnvironment();
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         this.environment = new Environment(50, 10);
         this.state = {
-            timeStep: 1
+            timeStep: 1, cells
         }
     }
 
     componentDidMount() {
-        this.interval = setInterval(() => this.setState({ timeStep: this.state.timeStep + 1 }), 10000000);
+        this.interval = setInterval(() => this.setState({ timeStep: this.state.timeStep + 1 }), 1000);
     }
     componentWillUnmount() {
         clearInterval(this.interval);
@@ -30,7 +32,7 @@ class App extends React.Component {
                 <header className="App-header">
                     <h1>Life Simulation</h1>
                     Time step: {this.state.timeStep}
-                    {this.renderCells(this.environment.generateEnvironment())}
+                    {this.renderCells(cells)}
                 </header>
             </div>
         );

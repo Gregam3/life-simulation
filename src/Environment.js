@@ -1,4 +1,5 @@
 import React from "react";
+import {TILES} from "./Agent";
 
 const range = (i) => {
     return [...Array(i).keys()];
@@ -13,7 +14,7 @@ const invertKeys = (json) => {
 }
 
 Array.prototype.random = function () {
-    return this[Math.floor((Math.random()*this.length))];
+    return this[Math.floor((Math.random() * this.length))];
 }
 
 const random = (max, min = 0) => {
@@ -27,27 +28,7 @@ const randomKey = function (obj) {
 
 const deepClone = obj => Object.assign({}, obj);
 
-const TILES = {
-    Grass: {
-        characters: ['🌱'],
-        color: 'green'
-    },
-    Water: {
-        characters: ['💧'],
-        color: 'blue'
-    },
-    Fruit: {
-        characters: ['🍎'],
-        color: 'brown'
-    },
-    Agent: {
-        characters: ['🐒'],
-        color: 'red',
-        fontSize: 15
-    }
-}
-
-const   DIRECTIONS = {
+const DIRECTIONS = {
     1: {
         name: 'UP_LEFT',
         transform: {xChange: -1, yChange: -1}
@@ -117,7 +98,7 @@ class Environment {
         console.log('Generating environment')
         const grassPlaneCells = this.createGrassPlaneCells();
         const withWaterCells = this.populateWater(grassPlaneCells);
-        const withTreeCells = this.populateTrees(withWaterCells);
+        const withTreeCells = this.populateFruit(withWaterCells);
         return this.populateAgents(withTreeCells);
     }
 
@@ -140,10 +121,8 @@ class Environment {
 
             let directionKey = randomKey(validDirections);
             let direction = validDirections[directionKey];
-            console.log(direction, validDirections);
 
             while (direction !== DIRECTIONS[0] || Object.keys(validDirections).length === 0) {
-                console.info('inside while', directionKey)
                 let updatedCells = safeUpdateCells(cells,
                     x + direction.transform.xChange,
                     y + direction.transform.yChange,
@@ -169,7 +148,7 @@ class Environment {
         return cells;
     }
 
-    populateTrees(cells) {
+    populateFruit(cells) {
         return cells.map(rows => rows.map(cell => {
             const r = random(TREE_CHANCE_ONE_IN_X);
             if (cell.type === TILES.Grass && r === TREE_CHANCE_ONE_IN_X) {

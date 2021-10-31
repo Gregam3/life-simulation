@@ -2,26 +2,37 @@ import logo from './logo.svg';
 import './App.css';
 import React from "react";
 import Environment from "./Environment";
+import BehaviourController from "./BehaviourController";
+import {TILES} from "./Agent";
 
 const range = (i) => {
     return [...Array(i).keys()];
 }
 
-const environment = new Environment(50, 10);
-const cells = environment.generateEnvironment();
+const cells = new Environment(50, 20).generateEnvironment();
+const behaviourController = new BehaviourController();
 
 class App extends React.Component {
     constructor(props) {
         super(props);
-        this.environment = new Environment(50, 10);
         this.state = {
             timeStep: 1, cells
         }
     }
 
     componentDidMount() {
-        this.interval = setInterval(() => this.setState({ timeStep: this.state.timeStep + 1 }), 1000);
+        this.interval = setInterval(() => this.tick(), 100000);
     }
+
+    tick() {
+        const agents = this.state.cells.flatMap(rows => rows.filter(cell => cell.type === TILES.Agent));
+
+        this.setState({
+            timeStep: this.state.timeStep + 1,
+            cells: behaviourController.act(agents, this.state.cells)
+        });
+    }
+
     componentWillUnmount() {
         clearInterval(this.interval);
     }
@@ -32,7 +43,7 @@ class App extends React.Component {
                 <header className="App-header">
                     <h1>Life Simulation</h1>
                     Time step: {this.state.timeStep}
-                    {this.renderCells(cells)}
+                    {this.renderCells(this.state.cells)}
                 </header>
             </div>
         );
@@ -43,7 +54,11 @@ class App extends React.Component {
     }
 
     renderCell(tile) {
-        return <span style={{color: tile.type.color, width: '25px', display: 'inline-block'}}>{tile.type.characters.random()}</span>;
+        return <span style={{
+            color: tile.type.color,
+            width: '25px',
+            display: 'inline-block'
+        }}>{tile.type.characters.random()}</span>;
     }
 }
 

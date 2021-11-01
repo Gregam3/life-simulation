@@ -1,4 +1,4 @@
-export const TILES = {
+export const CELL_TYPES = {
     Grass: {
         characters: ['🌱'],
         color: 'green',

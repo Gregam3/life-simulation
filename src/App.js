@@ -3,7 +3,7 @@ import './App.css';
 import React from "react";
 import Environment from "./Environment";
 import BehaviourController from "./BehaviourController";
-import {TILES} from "./Agent";
+import {CELL_TYPES} from "./Agent";
 
 const range = (i) => {
     return [...Array(i).keys()];

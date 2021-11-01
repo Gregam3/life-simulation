@@ -1,4 +1,4 @@
-import {TILES} from "./Agent";
+import {CELL_TYPES} from "./Agent";
 import _ from "lodash";
 
 const Util = require("./Util");
@@ -18,7 +18,7 @@ export default class BehaviourController {
     }
 
     processAgentBehaviour(environment) {
-        const agentCells = environment.getCellsOfType(TILES.Agent);
+        const agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
         const agentMovements = this.generateAgentMovements(agentCells, environment.cells);
 
         environment.cells = this.simulateAgentMovements(agentMovements, environment.cells);
@@ -40,7 +40,7 @@ export default class BehaviourController {
     generateAgentMovements(agentCells, cells) {
         agentCells.forEach(agentCell => {
             agentCell.agent.hunger -= 0.1
-            if (agentCell.agent.hunger < 0) agentCell.type = TILES.Dead
+            if (agentCell.agent.hunger < 0) agentCell.type = CELL_TYPES.Dead
         });
 
         return agentCells.filter(agentCell => agentCell.agent.hunger > 0).map(agentCell => {

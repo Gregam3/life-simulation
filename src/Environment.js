@@ -1,5 +1,5 @@
 import React from "react";
-import Agent, {TILES} from "./Agent";
+import Agent, {CELL_TYPES} from "./Agent";
 import Cell from "./Cell";
 
 const range = (i) => {
@@ -106,7 +106,7 @@ class Environment {
     }
 
     createGrassPlaneCells() {
-        return range(this.height).map(y => range(this.width).map(x => new Cell(TILES.Grass, y, x)));
+        return range(this.height).map(y => range(this.width).map(x => new Cell(CELL_TYPES.Grass, y, x)));
     }
 
     populateWater(cells) {
@@ -123,7 +123,7 @@ class Environment {
                 let updatedCells = safeUpdateCells(cells,
                     x + direction.transform.xChange,
                     y + direction.transform.yChange,
-                    TILES.Water);
+                    CELL_TYPES.Water);
 
                 if (updatedCells === null) {
                     console.info('Invalid direction', direction.name);
@@ -133,7 +133,7 @@ class Environment {
                     y = y + direction.transform.yChange;
                     console.info('Valid direction', direction.name, 'New x y', x, y);
 
-                    cells = safeUpdateCells(cells, x, y, TILES.Water);
+                    cells = safeUpdateCells(cells, x, y, CELL_TYPES.Water);
                     validDirections = deepClone(DIRECTIONS);
                 }
 
@@ -148,8 +148,8 @@ class Environment {
     populateFruit(cells) {
         return cells.map(rows => rows.map(cell => {
             const r = random(TREE_CHANCE_ONE_IN_X);
-            if (cell.type === TILES.Grass && r === TREE_CHANCE_ONE_IN_X) {
-                cell.type = TILES.Fruit;
+            if (cell.type === CELL_TYPES.Grass && r === TREE_CHANCE_ONE_IN_X) {
+                cell.type = CELL_TYPES.Fruit;
             }
             return cell;
         }));
@@ -158,8 +158,8 @@ class Environment {
     populateAgents(cells) {
         return cells.map(rows => rows.map(cell => {
             const r = random(AGENT_CHANCE_ONE_IN_X);
-            if (cell.type === TILES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
-                cell.type = TILES.Agent;
+            if (cell.type === CELL_TYPES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
+                cell.type = CELL_TYPES.Agent;
                 cell.agent = new Agent(NAMES[0], cell.x, cell.y, 1.0);
                 delete NAMES[0];
             }

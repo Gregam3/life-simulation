@@ -9,14 +9,14 @@ const range = (i) => {
     return [...Array(i).keys()];
 }
 
-const cells = new Environment(50, 25).generateEnvironment();
-const behaviourController = new BehaviourController();
+const environment = new Environment(50, 10);
+const BEHAVIOUR_CONTROLLER = new BehaviourController();
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            timeStep: 1, cells
+            timeStep: 1, environment
         }
     }
 
@@ -25,11 +25,9 @@ class App extends React.Component {
     }
 
     tick() {
-        const agents = this.state.cells.flatMap(rows => rows.filter(cell => cell.type === TILES.Agent));
-
         this.setState({
             timeStep: this.state.timeStep + 1,
-            cells: behaviourController.act(agents, this.state.cells)
+            cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.environment)
         });
     }
 
@@ -43,7 +41,7 @@ class App extends React.Component {
                 <header className="App-header">
                     <h1>Life Simulation</h1>
                     Time step: {this.state.timeStep}
-                    {this.renderCells(this.state.cells)}
+                    {this.renderCells(this.state.environment.cells)}
                 </header>
             </div>
         );

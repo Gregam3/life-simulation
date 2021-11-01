@@ -10,32 +10,49 @@ const visionRange = cartesianProduct(Util.trueRange(2, -2));
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
 
 export default class BehaviourController {
-    act(agentCells, cells) {
+    processTimeStep(environment) {
+        environment = this.processAgentBehaviour(environment);
+
+        return environment;
+    }
+
+
+    processAgentBehaviour(environment) {
+        const agentCells = environment.getCellsOfType(TILES.Agent);
+        const agentMovements = this.generateAgentMovements(agentCells, environment.cells);
+
+        this.simulateAgentMovements(agentMovements, environment.cells);
+        return environment;
+    }
+
+    simulateAgentMovements(agentMovements, cells) {
+        let clonedCells = cells;
+
+        agentMovements.forEach(agentMovement => {
+            console.log('agentMovement', agentMovement)
+            clonedCells[agentMovement.agentCell.y][agentMovement.agentCell.x].type = TILES.Grass;
+            clonedCells[agentMovement.agentCell.y + agentMovement.movement.yChange][agentMovement.agentCell.x + agentMovement.movement.xChange] = agentMovement.agentCell;
+        });
+
+        return clonedCells;
+    }
+
+    generateAgentMovements(agentCells, cells) {
         agentCells.forEach(agentCell => {
             agentCell.agent.hunger -= 0.1
             if (agentCell.agent.hunger < 0) agentCell.type = TILES.Dead
         });
 
-
-        const agentMovements = agentCells.filter(agentCell => agentCell.agent.hunger > 0).map(agentCell => {
+        return agentCells.filter(agentCell => agentCell.agent.hunger > 0).map(agentCell => {
             return {
-                agent: agentCell,
+                agentCell,
                 movement: this.searchForFood(agentCell, cells)
             }
         });
-
-        agentMovements.forEach(agentMovement => {
-            console.log('agentMovement', agentMovement)
-            cells[agentMovement.agent.y][agentMovement.agent.x].type = TILES.Grass;
-            cells[agentMovement.agent.y + agentMovement.movement.yChange][agentMovement.agent.x + agentMovement.movement.xChange].type = TILES.Agent;
-        });
-
-        return cells;
     }
 
-
     searchForFood(agent, cells) {
-        const cellsInSenseRange = this.generateCellsInSightRange(agent, cells, 2);
+        const cellsInSenseRange = this.generateCellsInSightRange(agent, cells);
 
         const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.isEdible);
 
@@ -46,10 +63,9 @@ export default class BehaviourController {
         }
 
         return this.navigateTowards(agent, cells, this.generateCellsInMovementRange(agent, cells).random());
-
     }
 
-    generateCellsInSightRange = (agent, cells, sightLength) => {
+    generateCellsInSightRange = (agent, cells) => {
         return visionRange.flatMap(positionChange => safeGetCell(
                     cells,
                     agent.x + positionChange.xChange,
@@ -58,7 +74,7 @@ export default class BehaviourController {
             ).filter(cell => cell !== null);
     }
 
-    generateCellsInMovementRange = (agent, cells, sightLength) => {
+    generateCellsInMovementRange = (agent, cells) => {
         return movementRange.flatMap(positionChange => safeGetCell(
                 cells,
                 agent.x + positionChange.xChange,

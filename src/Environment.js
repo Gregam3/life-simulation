@@ -1,5 +1,6 @@
 import React from "react";
 import Agent, {TILES} from "./Agent";
+import Cell from "./Cell";
 
 const range = (i) => {
     return [...Array(i).keys()];
@@ -71,7 +72,6 @@ export const safeUpdateCells = (cells, x, y, newTile) => {
     if (x > cells[0].length - 1 || y > cells.length - 1 || x < 0 || y < 0) return null;
 
     let clonedCells = cells;
-    console.info(cells, clonedCells, x, y);
 
     clonedCells[y][x].type = newTile;
     return clonedCells;
@@ -94,6 +94,7 @@ class Environment {
     constructor(width, height) {
         this.width = width;
         this.height = height;
+        this.cells = this.generateEnvironment();
     }
 
     generateEnvironment() {
@@ -106,12 +107,7 @@ class Environment {
 
     createGrassPlaneCells() {
         console.log(this.height, this.width)
-        return range(this.height).map(y => range(this.width).map(x => {
-            return {
-                type: TILES.Grass,
-                x: x, y: y
-            }
-        }));
+        return range(this.height).map(y => range(this.width).map(x => new Cell(TILES.Grass, y, x)));
     }
 
     populateWater(cells) {
@@ -170,6 +166,10 @@ class Environment {
             }
             return cell;
         }));
+    }
+
+    getCellsOfType(cellType) {
+        return this.cells.flatMap(row => row).filter(cell => cell.type === cellType);
     }
 }
 

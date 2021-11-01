@@ -1,4 +1,5 @@
 import {TILES} from "./Agent";
+import _ from "lodash";
 
 const Util = require("./Util");
 const {safeGetCell} = require("./Environment");
@@ -16,22 +17,21 @@ export default class BehaviourController {
         return environment;
     }
 
-
     processAgentBehaviour(environment) {
         const agentCells = environment.getCellsOfType(TILES.Agent);
         const agentMovements = this.generateAgentMovements(agentCells, environment.cells);
 
-        this.simulateAgentMovements(agentMovements, environment.cells);
+        environment.cells = this.simulateAgentMovements(agentMovements, environment.cells);
         return environment;
     }
 
     simulateAgentMovements(agentMovements, cells) {
-        let clonedCells = cells;
-
+        const clonedCells = _.cloneDeep(cells);
         agentMovements.forEach(agentMovement => {
-            console.log('agentMovement', agentMovement)
-            clonedCells[agentMovement.agentCell.y][agentMovement.agentCell.x].type = TILES.Grass;
-            clonedCells[agentMovement.agentCell.y + agentMovement.movement.yChange][agentMovement.agentCell.x + agentMovement.movement.xChange] = agentMovement.agentCell;
+            const currentAgentCell = clonedCells[agentMovement.agentCell.y][agentMovement.agentCell.x];
+            currentAgentCell.updateToPreviousCell();
+            let newAgentCell = clonedCells[agentMovement.agentCell.y + agentMovement.movement.yChange][agentMovement.agentCell.x + agentMovement.movement.xChange];
+            newAgentCell.updateToAgent(agentMovement.agentCell.agent)
         });
 
         return clonedCells;
@@ -53,10 +53,7 @@ export default class BehaviourController {
 
     searchForFood(agent, cells) {
         const cellsInSenseRange = this.generateCellsInSightRange(agent, cells);
-
         const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.isEdible);
-
-        console.log('food', foodCellsInRange)
 
         if (foodCellsInRange.length > 0) {
             return this.navigateTowards(agent, cells, foodCellsInRange.random());

@@ -9,20 +9,23 @@ export default class Cell {
         this.cellHistory = [];
     }
 
-    addItemToCellHistory(newType = null) {
-        this.cellHistory.unshift({type: newType == null ? this.type : newType, agent: this.agent});
+    addItemToCellHistory(newType) {
+        this.cellHistory.unshift({type: newType ? newType : this.type, agent: this.agent});
     }
 
     updateToAgent(agent) {
-        this.addItemToCellHistory(this.type === CELL_TYPES.Fruit ? CELL_TYPES.Grass : null);
+        if (this.type.isEdible) {
+            this.addItemToCellHistory(CELL_TYPES.Grass);
+            agent.hunger -= 0.5;
+        }
+
+        this.cellHistory.unshift({type: CELL_TYPES.Grass, agent: this.agent});
         this.agent = agent;
         this.type = CELL_TYPES.Agent;
-        console.log(this.type);
     }
 
     updateToPreviousCell() {
         if (this.cellHistory.length > 0) this.type = this.cellHistory[0].type;
         else this.type = CELL_TYPES.Grass;
-        console.log(this.type);
     }
 }

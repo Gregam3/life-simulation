@@ -1,26 +1,26 @@
 export const CELL_TYPES = {
     Grass: {
-        characters: ['🌱'],
+        character: '🌱',
         color: 'green',
         obstructs: false
     },
     Water: {
-        characters: ['💧'],
+        character: '💧',
         color: 'blue',
         obstructs: true
     },
     Fruit: {
-        characters: ['🍎'],
+        character: '🍎',
         color: 'brown',
         isEdible: true
     },
     Agent: {
-        characters: ['🐒'],
+        character: '🐒',
         color: 'red',
         obstructs: true
     },
     Dead: {
-        characters: ['💀'],
+        character: '💀',
         color: 'white'
     }
 }

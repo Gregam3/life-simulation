@@ -126,19 +126,16 @@ class Environment {
                     CELL_TYPES.Water);
 
                 if (updatedCells === null) {
-                    console.info('Invalid direction', direction.name);
                     delete validDirections[directionKey];
                 } else {
                     x = x + direction.transform.xChange;
                     y = y + direction.transform.yChange;
-                    console.info('Valid direction', direction.name, 'New x y', x, y);
 
                     cells = safeUpdateCells(cells, x, y, CELL_TYPES.Water);
                     validDirections = deepClone(DIRECTIONS);
                 }
 
                 direction = validDirections[randomKey(validDirections)];
-                console.info('New direction', direction.name);
             }
         }
 
@@ -160,7 +157,7 @@ class Environment {
             const r = random(AGENT_CHANCE_ONE_IN_X);
             if (cell.type === CELL_TYPES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
                 cell.type = CELL_TYPES.Agent;
-                cell.agent = new Agent(NAMES[0], cell.x, cell.y, 1.0);
+                cell.agent = new Agent(NAMES[0], cell.x, cell.y, 0);
                 delete NAMES[0];
             }
             return cell;

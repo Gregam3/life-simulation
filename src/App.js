@@ -21,13 +21,13 @@ class App extends React.Component {
     }
 
     componentDidMount() {
-        this.interval = setInterval(() => this.tick(), 2000);
+        this.interval = setInterval(() => this.tick(), 1000);
     }
 
     tick() {
         this.setState({
             timeStep: this.state.timeStep + 1,
-            cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.environment)
+            cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.environment, this.state.timeStep)
         });
     }
 
@@ -52,13 +52,11 @@ class App extends React.Component {
     }
 
     renderCell(tile) {
-        if (tile) console.log('tile', tile)
-
         return <span style={{
             color: tile.type.color,
             width: '25px',
             display: 'inline-block'
-        }}>{tile.type.characters.random()}</span>;
+        }}>{tile.type.character}</span>;
     }
 }
 

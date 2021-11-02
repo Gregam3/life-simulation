@@ -11,7 +11,8 @@ const visionRange = cartesianProduct(Util.trueRange(2, -2));
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
 
 export default class BehaviourController {
-    processTimeStep(environment) {
+    processTimeStep(environment, timeStep) {
+        console.log('timeStep:' + timeStep)
         environment = this.processAgentBehaviour(environment);
 
         return environment;
@@ -31,7 +32,7 @@ export default class BehaviourController {
             const currentAgentCell = clonedCells[agentMovement.agentCell.y][agentMovement.agentCell.x];
             currentAgentCell.updateToPreviousCell();
             let newAgentCell = clonedCells[agentMovement.agentCell.y + agentMovement.movement.yChange][agentMovement.agentCell.x + agentMovement.movement.xChange];
-            newAgentCell.updateToAgent(agentMovement.agentCell.agent)
+            newAgentCell.updateToAgent(agentMovement.agentCell.agent);
         });
 
         return clonedCells;
@@ -39,8 +40,9 @@ export default class BehaviourController {
 
     generateAgentMovements(agentCells, cells) {
         agentCells.forEach(agentCell => {
-            agentCell.agent.hunger -= 0.1
-            if (agentCell.agent.hunger < 0) agentCell.type = CELL_TYPES.Dead
+            agentCell.agent.hunger += 0.1
+            console.log('agent hunger at xy', agentCell.x, agentCell.y, agentCell.agent.hunger);
+            if (agentCell.agent.hunger > 1) agentCell.type = CELL_TYPES.Dead
         });
 
         return agentCells.filter(agentCell => agentCell.agent.hunger > 0).map(agentCell => {

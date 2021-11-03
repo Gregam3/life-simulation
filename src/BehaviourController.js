@@ -47,9 +47,9 @@ export default class BehaviourController {
 
     generateAgentMovements(agentCells, cells) {
         agentCells.forEach(agentCell => {
-            agentCell.agent.hunger += 0.1
+            agentCell.agent.hunger += 100
             console.log('Monkey name=' + agentCell.agent.name + " hunger=" + agentCell.agent.hunger, agentCell.x, agentCell.y, agentCell.agent.hunger);
-            if (agentCell.agent.hunger > 1) agentCell.type = CELL_TYPES.Dead
+            if (agentCell.agent.isDead()) agentCell.type = CELL_TYPES.Dead
         });
 
         return agentCells.filter(agentCell => !agentCell.agent.isDead()).map(agentCell => {
@@ -62,7 +62,7 @@ export default class BehaviourController {
 
     searchForFood(agent, cells) {
         const cellsInSenseRange = this.generateCellsInSightRange(agent, cells);
-        const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.isEdible);
+        const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.calories > 0);
 
         if (foodCellsInRange.length > 0) {
             return this.navigateTowards(agent, cells, foodCellsInRange.random());

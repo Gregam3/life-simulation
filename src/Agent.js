@@ -15,7 +15,7 @@ export const CELL_TYPES = {
         name: 'Fruit',
         character: '🍎',
         color: 'brown',
-        isEdible: true
+        calories: 500
     },
     Agent: {
         name: 'Agent',
@@ -26,10 +26,13 @@ export const CELL_TYPES = {
     },
     Dead: {
         name: 'Dead',
-        character: '💀',
-        color: 'white'
+        character: '🍖',
+        color: 'white',
+        calories: 2000
     }
 }
+
+const DEATH_HUNGER = 2000;
 
 export default class Agent {
     constructor(name, x, y, hunger) {
@@ -39,7 +42,7 @@ export default class Agent {
         this.hunger = hunger;
     }
 
-    isDead = () => this.hunger > 1;
+    isDead = () => this.hunger > DEATH_HUNGER;
 }
 
 

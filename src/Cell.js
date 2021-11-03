@@ -22,9 +22,9 @@ export default class Cell {
     }
 
     updateToAgent(agent) {
-        if (this.type.isEdible) {
+        if (this.type.calories > 0) {
             this.addItemToCellHistory(CELL_TYPES.Grass);
-            agent.hunger -= 0.5;
+            agent.hunger -= this.type.calories;
         }
 
         this.agent = agent;

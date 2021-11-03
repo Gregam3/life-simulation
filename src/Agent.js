@@ -1,26 +1,26 @@
 export const CELL_TYPES = {
     Grass: {
         name: 'Grass',
-        character: '🌱',
+        character: ' ',
         color: 'green',
         obstructs: false
     },
     Water: {
         name: 'Water',
-        character: '💧',
+        character: ' ',
         color: 'blue',
         obstructs: true
     },
     Fruit: {
         name: 'Fruit',
         character: '🍎',
-        color: 'red',
+        color: 'green',
         calories: 500
     },
     Agent: {
         name: 'Agent',
         character: '🐒',
-        color: 'brown',
+        color: 'green',
         obstructs: true,
         isAgent: true
     },
@@ -28,7 +28,8 @@ export const CELL_TYPES = {
         name: 'Dead',
         character: '🍖',
         color: 'red',
-        calories: 2000
+        calories: 2000,
+        obstructs: false
     }
 }
 
@@ -40,7 +41,7 @@ export default class Agent {
         this.x = x;
         this.y = y;
         this.hunger = hunger;
-        this.currentTarget = null;
+        this.currentPath = null;
     }
 
     isDead = () => this.hunger > DEATH_HUNGER;

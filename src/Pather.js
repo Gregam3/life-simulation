@@ -1,9 +1,26 @@
+const PF = require('pathfinding');
+
 export default class Pather {
-    generatePath(agentCell, targetCell, cells) {
-        let simulatedAgentCell = _.clone(agentCell);
+    generatePath(agentCell, targetCell, environment) {
+        const grid = new PF.Grid(environment.width, environment.height);
 
-        while (!(agentCell.x === targetCell.x && agentCell.y === targetCell.y)) {
+        let x = 0;
+        let y = 0;
 
-        }
+        environment.cells.forEach(row => {
+            x = 0;
+            row.forEach(cell => {
+                grid.setWalkableAt(x, y, !cell.type.obstructs);
+                x++;
+            });
+            y++;
+        });
+
+        const pathFinder = new PF.AStarFinder();
+
+        let agentPath = pathFinder.findPath(agentCell.x, agentCell.y, targetCell.x, targetCell.y, grid);
+        //This refers to the current agent's position
+        agentPath.shift();
+        return agentPath;
     }
 }

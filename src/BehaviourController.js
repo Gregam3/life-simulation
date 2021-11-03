@@ -13,29 +13,31 @@ const movementRange = cartesianProduct(Util.trueRange(1, -1));
 export default class BehaviourController {
     processTimeStep(environment, timeStep) {
         console.log('timeStep:' + timeStep)
-        environment = this.processAgentBehaviour(environment);
+        environment = this.processAgentBehaviour(environment, timeStep);
 
         return environment;
     }
 
-    processAgentBehaviour(environment) {
+    processAgentBehaviour(environment, timeStep) {
         const agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
 
         if (agentCells.length === 0) {
             environment.end = true;
             return environment;
         }
+
         const agentMovements = this.generateAgentMovements(agentCells, environment.cells);
 
-        environment.cells = this.simulateAgentMovements(agentMovements, environment.cells);
+        environment.cells = this.simulateAgentMovements(agentMovements, environment.cells, timeStep);
+
         return environment;
     }
 
-    simulateAgentMovements(agentMovements, cells) {
+    simulateAgentMovements(agentMovements, cells, timeStep) {
         const clonedCells = _.cloneDeep(cells);
         agentMovements.forEach(agentMovement => {
             const currentAgentCell = clonedCells[agentMovement.agentCell.y][agentMovement.agentCell.x];
-            currentAgentCell.updateToPreviousCell();
+            currentAgentCell.updateToPreviousCell(timeStep);
             let newAgentCell = clonedCells[agentMovement.agentCell.y + agentMovement.movement.yChange][agentMovement.agentCell.x + agentMovement.movement.xChange];
             newAgentCell.updateToAgent(agentMovement.agentCell.agent);
         });
@@ -50,7 +52,7 @@ export default class BehaviourController {
             if (agentCell.agent.hunger > 1) agentCell.type = CELL_TYPES.Dead
         });
 
-        return agentCells.filter(agentCell => agentCell.agent.hunger < 1).map(agentCell => {
+        return agentCells.filter(agentCell => !agentCell.agent.isDead()).map(agentCell => {
             return {
                 agentCell,
                 movement: this.searchForFood(agentCell, cells)

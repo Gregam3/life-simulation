@@ -68,12 +68,12 @@ const DIRECTIONS = {
     }
 }
 
-export const safeUpdateCells = (cells, x, y, newTile) => {
+export const safeUpdateCells = (cells, x, y, newType) => {
     if (x > cells[0].length - 1 || y > cells.length - 1 || x < 0 || y < 0) return null;
 
     let clonedCells = cells;
 
-    clonedCells[y][x].type = newTile;
+    clonedCells[y][x].updateType(newType);
     return clonedCells;
 }
 
@@ -84,9 +84,10 @@ export const safeGetCell = (cells, x, y) => {
 }
 
 //generation parameters
-const WATER_BODIES = 50;
+const WATER_BODIES = 500;
 const TREE_CHANCE_ONE_IN_X = 10;
-const AGENT_CHANCE_ONE_IN_X = 35;
+const AGENT_CHANCE_ONE_IN_X = 100;
+const MINIMUM_AGENTS = 2;
 
 const NAMES = ['Augie','Indy','Sabine','Cotton','Flash','Whiskey','Titus','Murphy','Astro','Amber','Godiva','Arnie','Cobweb','Joe','Maxine','Chi Chi','Ryder','Bruno','Genie','Gypsy','Wilber','Blast','Skippy','Honey','Elvis','Solomon','Powder','Maggie','Einstein','Quinn','Fonzie','Clancy','Maxwell','Natasha','Flopsy','Presley','Penny','Tanner','Amy','Goldie','Kelly','Sissy','Butch','Ringo','Puppy','Jersey','Chief','Kipper','Abbey','Scooby-doo','Chip','Abel','Sweetie','Porky','Jelly','Paris','Silver','Maggie-mae','Nana','Sally','Sophie','Barbie','Chippy','Guido','Vegas','Ziggy','Casper','Binky','Finnegan','Gretchen','Bucko','Poppy','Pudge','Shaggy','Bubba','Bessie','Summer','Bug','Monster','Dreamer','Scout','Patsy','Kobe','Toni','Willy','Tigger','Angel','Bosco','Kona','Chad','Tiger','Guy','Kerry','Tiki','Picasso','Miasy','Titan','Charlie','Mitzi','Layla'];
 
@@ -146,26 +147,35 @@ class Environment {
         return cells.map(rows => rows.map(cell => {
             const r = random(TREE_CHANCE_ONE_IN_X);
             if (cell.type === CELL_TYPES.Grass && r === TREE_CHANCE_ONE_IN_X) {
-                cell.type = CELL_TYPES.Fruit;
+                cell.updateType(CELL_TYPES.Fruit);
             }
             return cell;
         }));
     }
 
     populateAgents(cells) {
-        return cells.map(rows => rows.map(cell => {
-            const r = random(AGENT_CHANCE_ONE_IN_X);
-            if (cell.type === CELL_TYPES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
-                cell.type = CELL_TYPES.Agent;
-                console.log(NAMES)
-                cell.agent = new Agent(NAMES.pop(), cell.x, cell.y, 0);
-            }
-            return cell;
-        }));
+        let newCells = cells;
+
+        while (this.getCellsOfTypeFromProvided(newCells, CELL_TYPES.Agent) < MINIMUM_AGENTS) {
+            newCells = cells.map(rows => rows.map(cell => {
+                const r = random(AGENT_CHANCE_ONE_IN_X);
+                if (cell.type === CELL_TYPES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
+                    cell.type = CELL_TYPES.Agent;
+                    cell.agent = new Agent(NAMES.pop(), cell.x, cell.y, 0);
+                }
+                return cell;
+            }));
+        }
+
+        return newCells;
     }
 
     getCellsOfType(cellType) {
-        return this.cells.flatMap(row => row).filter(cell => cell.type === cellType);
+        return this.cells.flatMap(row => row).filter(cell => cell.type.name === cellType.name);
+    }
+
+    getCellsOfTypeFromProvided(cells, cellType) {
+        return cells.flatMap(row => row).filter(cell => cell.type.name === cellType.name);
     }
 }
 

@@ -7,6 +7,14 @@ export default class Cell {
         this.y = y;
         this.agent = agent;
         this.cellHistory = [];
+        if (this.type.name !== 'Agent') {
+            this.addItemToCellHistory();
+        }
+    }
+
+    updateType(newType) {
+        this.type = newType;
+        this.addItemToCellHistory(newType);
     }
 
     addItemToCellHistory(newType) {
@@ -19,12 +27,18 @@ export default class Cell {
             agent.hunger -= 0.5;
         }
 
-        this.cellHistory.unshift({type: CELL_TYPES.Grass, agent: this.agent});
         this.agent = agent;
         this.type = CELL_TYPES.Agent;
     }
 
-    updateToPreviousCell() {
-        if (this.cellHistory.length > 0 && this.type.isAgent) this.type = this.cellHistory[0].type;
+    updateToPreviousCell(timeStep) {
+        if (timeStep === 1 && this.type.isAgent) {
+            this.type = CELL_TYPES.Grass;
+            this.agent = null;
+        } else if (this.cellHistory.length > 0) {
+            this.type = this.cellHistory[0].type;
+        } else {
+            console.log()
+        }
     }
 }

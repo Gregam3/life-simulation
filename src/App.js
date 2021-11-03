@@ -9,7 +9,7 @@ const range = (i) => {
     return [...Array(i).keys()];
 }
 
-const environment = new Environment(50, 10);
+const environment = new Environment(20, 10);
 const BEHAVIOUR_CONTROLLER = new BehaviourController();
 
 class App extends React.Component {
@@ -57,7 +57,7 @@ class App extends React.Component {
 
     renderCell(tile) {
         return <span style={{
-            color: tile.type.color,
+            backgroundColor: tile.type.color,
             width: '25px',
             display: 'inline-block'
         }}>{tile.type.character}</span>;

@@ -37,8 +37,6 @@ export default class Cell {
             this.agent = null;
         } else if (this.cellHistory.length > 0) {
             this.type = this.cellHistory[0].type;
-        } else {
-            console.log()
         }
     }
 }

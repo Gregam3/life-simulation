@@ -1,6 +1,7 @@
 import {CELL_TYPES} from "./Agent";
 import _ from "lodash";
 import Pather from "./Pather";
+import * as path from "path";
 
 const Util = require("./Util");
 const {safeGetCell} = require("./Environment");
@@ -21,7 +22,7 @@ export default class BehaviourController {
     }
 
     processAgentBehaviour(environment, timeStep) {
-        const agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
+        let agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
 
         agentCells.forEach(agentCell => {
             agentCell.agent.hunger += 100
@@ -34,74 +35,69 @@ export default class BehaviourController {
             return environment;
         }
 
-        const agentPaths = this.generateAgentMovementPaths(agentCells, environment);
+        //Filters out Dead agents
+        agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
+        agentCells.forEach(agentCell => this.generatePathToFood(agentCell, environment));
 
-        environment.cells = this.simulateAgentMovements(agentPaths, environment.cells, timeStep);
+        environment.cells = this.simulateAgentMovements(agentCells, environment.cells, timeStep);
 
         return environment;
     }
 
-    simulateAgentMovements(agentPaths, cells, timeStep) {
+    simulateAgentMovements(agentCells, cells, timeStep) {
         const clonedCells = _.cloneDeep(cells);
-        agentMovements.forEach(agentMovement => {
-            const currentAgentCell = clonedCells[agentMovement.agentCell.y][agentMovement.agentCell.x];
-            currentAgentCell.updateToPreviousCell(timeStep);
-            let newAgentCell = clonedCells[agentMovement.agentCell.y + agentMovement.movement.yChange][agentMovement.agentCell.x + agentMovement.movement.xChange];
-            newAgentCell.updateToAgent(agentMovement.agentCell.agent);
+        agentCells.forEach(agentCell => {
+            if (agentCell.agent.currentPath.length > 0) {
+                const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
+                currentAgentCell.updateToPreviousCell(timeStep);
+                const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
+                agentCell.agent.currentPath.splice(0, 1);
+                newAgentCell.updateToAgent(agentCell.agent);
+            }
         });
 
         return clonedCells;
     }
 
-    generateAgentMovementPaths(agentCells, environment) {
-
-
-        return agentCells.filter(agentCell => !agentCell.agent.isDead()).map(agentCell => {
-            return {
-                agentCell,
-                path: this.generatePathToFood(agentCell, environment)
-            }
-        });
+    generatePathToFood(agentCell, environment) {
+        let pathToFood = this.getPathToFood(agentCell, environment);
+        if (pathToFood === null) {
+            //For now move randomly if no food found
+            let randomTargetCell = this.generateCellsInMovementRange(agentCell, environment.cells).random();
+            agentCell.agent.currentPath = PATHER.generatePath(agentCell, randomTargetCell, environment);
+        } else if (agentCell.agent.currentPath === null || pathToFood.length < agentCell.agent.currentPath.length) {
+            agentCell.agent.currentPath = pathToFood;
+        }
     }
 
-    generatePathToFood(agent, environment) {
-        if (!agent.currentTarget) {
-            const cellsInSenseRange = this.generateCellsInSightRange(agent, environment.cells);
-            const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.calories > 0).sort(cell => cell.type.calories).reverse();
+    getPathToFood(agentCell, environment) {
+        const cellsInSenseRange = this.generateCellsInSightRange(agentCell, environment.cells);
+        const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.calories > 0).sort(cell => cell.type.calories).reverse();
 
-            if (foodCellsInRange.length > 0) {
-                let newTargetCell = foodCellsInRange.random();
-                agent.currentTarget = newTargetCell;
-                return this.navigateTowards(agent, environment, newTargetCell);
-            }
-        } else {
-            return this.navigateTowards(agent, environment, agent.currentTarget);
+        if (foodCellsInRange.length > 0) {
+            let newTargetCell = foodCellsInRange.random();
+            return PATHER.generatePath(agentCell, newTargetCell, environment);
         }
 
-        //For now move randomly if no food found
-        return this.navigateTowards(agent, environment, this.generateCellsInMovementRange(agent, environment.cells).random());
+        return null;
     }
 
-    generateCellsInSightRange = (agent, cells) => {
+    generateCellsInSightRange = (agentCell, cells) => {
         return visionRange.flatMap(positionChange => safeGetCell(
                 cells,
-                agent.x + positionChange.xChange,
-                agent.y + positionChange.yChange
+                agentCell.x + positionChange.xChange,
+                agentCell.y + positionChange.yChange
             )
         ).filter(cell => cell !== null);
     }
 
-    generateCellsInMovementRange = (agent, cells) => {
+    generateCellsInMovementRange = (agentCell, cells) => {
         return movementRange.flatMap(positionChange => safeGetCell(
                 cells,
-                agent.x + positionChange.xChange,
-                agent.y + positionChange.yChange
+                agentCell.x + positionChange.xChange,
+                agentCell.y + positionChange.yChange
             )
-        ).filter(cell => cell !== null);
-    }
-
-    navigateTowards(agent, environment, targetCell) {
-        return PATHER.generatePath(agent, targetCell, environment);
+        ).filter(cell => cell !== null && !cell.type.obstructs);
     }
 
     navigateAsCrowFlies(agent, targetCell) {

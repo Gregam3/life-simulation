@@ -61,11 +61,17 @@ export default class BehaviourController {
     }
 
     searchForFood(agent, cells) {
-        const cellsInSenseRange = this.generateCellsInSightRange(agent, cells);
-        const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.calories > 0);
+        if (agent.currentTarget === null) {
+            const cellsInSenseRange = this.generateCellsInSightRange(agent, cells);
+            const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.calories > 0).sort(cell => cell.type.calories).reverse();
 
-        if (foodCellsInRange.length > 0) {
-            return this.navigateTowards(agent, cells, foodCellsInRange.random());
+            if (foodCellsInRange.length > 0) {
+                let newTargetCell = foodCellsInRange.random();
+                agent.currentTarget = newTargetCell;
+                return this.navigateTowards(agent, cells, newTargetCell);
+            }
+        } else {
+            return this.navigateTowards(agent, cells, agent.currentTarget);
         }
 
         return this.navigateTowards(agent, cells, this.generateCellsInMovementRange(agent, cells).random());
@@ -73,11 +79,11 @@ export default class BehaviourController {
 
     generateCellsInSightRange = (agent, cells) => {
         return visionRange.flatMap(positionChange => safeGetCell(
-                    cells,
-                    agent.x + positionChange.xChange,
-                    agent.y + positionChange.yChange
-                )
-            ).filter(cell => cell !== null);
+                cells,
+                agent.x + positionChange.xChange,
+                agent.y + positionChange.yChange
+            )
+        ).filter(cell => cell !== null);
     }
 
     generateCellsInMovementRange = (agent, cells) => {
@@ -90,6 +96,10 @@ export default class BehaviourController {
     }
 
     navigateTowards(agent, cells, targetCell) {
+        return this.navigateAsCrowFlies(agent, targetCell);
+    }
+
+    navigateAsCrowFlies(agent, targetCell) {
         let xChange = 0;
         let yChange = 0;
 

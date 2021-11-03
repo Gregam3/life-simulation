@@ -25,7 +25,6 @@ export default class Cell {
     }
 
     updateToPreviousCell() {
-        if (this.cellHistory.length > 0) this.type = this.cellHistory[0].type;
-        else this.type = CELL_TYPES.Grass;
+        if (this.cellHistory.length > 0 && this.type.isAgent) this.type = this.cellHistory[0].type;
     }
 }

@@ -25,10 +25,14 @@ class App extends React.Component {
     }
 
     tick() {
-        this.setState({
-            timeStep: this.state.timeStep + 1,
-            cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.environment, this.state.timeStep)
-        });
+        if (this.state.environment.end) {
+            console.log('All Monkeys are dead :(')
+        } else {
+            this.setState({
+                timeStep: this.state.timeStep + 1,
+                cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.environment, this.state.timeStep)
+            });
+        }
     }
 
     componentWillUnmount() {

@@ -157,8 +157,8 @@ class Environment {
             const r = random(AGENT_CHANCE_ONE_IN_X);
             if (cell.type === CELL_TYPES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
                 cell.type = CELL_TYPES.Agent;
-                cell.agent = new Agent(NAMES[0], cell.x, cell.y, 0);
-                delete NAMES[0];
+                console.log(NAMES)
+                cell.agent = new Agent(NAMES.pop(), cell.x, cell.y, 0);
             }
             return cell;
         }));

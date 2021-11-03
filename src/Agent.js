@@ -17,7 +17,8 @@ export const CELL_TYPES = {
     Agent: {
         character: '🐒',
         color: 'red',
-        obstructs: true
+        obstructs: true,
+        isAgent: true
     },
     Dead: {
         character: '💀',
@@ -32,5 +33,9 @@ export default class Agent {
         this.y = y;
         this.hunger = hunger;
     }
+
+    isDead = () => this.hunger > 1;
 }
+
+
 

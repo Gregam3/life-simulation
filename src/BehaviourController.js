@@ -20,6 +20,11 @@ export default class BehaviourController {
 
     processAgentBehaviour(environment) {
         const agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
+
+        if (agentCells.length === 0) {
+            environment.end = true;
+            return environment;
+        }
         const agentMovements = this.generateAgentMovements(agentCells, environment.cells);
 
         environment.cells = this.simulateAgentMovements(agentMovements, environment.cells);
@@ -41,11 +46,11 @@ export default class BehaviourController {
     generateAgentMovements(agentCells, cells) {
         agentCells.forEach(agentCell => {
             agentCell.agent.hunger += 0.1
-            console.log('agent hunger at xy', agentCell.x, agentCell.y, agentCell.agent.hunger);
+            console.log('Monkey name=' + agentCell.agent.name + " hunger=" + agentCell.agent.hunger, agentCell.x, agentCell.y, agentCell.agent.hunger);
             if (agentCell.agent.hunger > 1) agentCell.type = CELL_TYPES.Dead
         });
 
-        return agentCells.filter(agentCell => agentCell.agent.hunger > 0).map(agentCell => {
+        return agentCells.filter(agentCell => agentCell.agent.hunger < 1).map(agentCell => {
             return {
                 agentCell,
                 movement: this.searchForFood(agentCell, cells)

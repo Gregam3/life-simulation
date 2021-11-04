@@ -43,7 +43,7 @@ class App extends React.Component {
         return (
             <div className="App">
                 <header className="App-header">
-                    <h1>Life Simulation</h1>
+                    <h1>Emergence</h1>
                     Time step: {this.state.timeStep}
                     {this.renderCells(this.state.environment.cells)}
                 </header>

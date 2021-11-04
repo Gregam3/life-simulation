@@ -31,6 +31,11 @@ export const CELL_TYPES = {
         color: 'green',
         calories: 2000,
         obstructs: false
+    },
+    Shit: {
+        name: 'Shit',
+        character: '💩',
+        color: 'green'
     }
 }
 

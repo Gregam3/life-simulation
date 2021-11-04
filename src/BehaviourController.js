@@ -2,6 +2,7 @@ import {CELL_TYPES} from "./Agent";
 import _ from "lodash";
 import Pather from "./Pather";
 import * as path from "path";
+import {weightedRandom} from "./Util";
 
 const Util = require("./Util");
 const {safeGetCell} = require("./Environment");
@@ -52,12 +53,21 @@ export default class BehaviourController {
             if (agentCell.agent.currentPath.length > 0) {
                 const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
                 currentAgentCell.updateToPreviousCell(timeStep);
+                if(this.shouldAgentShit(agentCell.agent)) {
+                    //TODO add to history
+                    currentAgentCell.type = CELL_TYPES.Shit;
+                }
                 const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
                 newAgentCell.updateToAgent(agentCell.agent);
             }
         });
 
         return clonedCells;
+    }
+
+    shouldAgentShit(agent) {
+        let max = 20 * (2000 / (Math.abs(2000 - agent.hunger)));
+        return weightedRandom(0, max) > (max * 0.8);
     }
 
     generatePathToFood(agentCell, environment) {

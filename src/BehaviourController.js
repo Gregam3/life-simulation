@@ -27,7 +27,9 @@ export default class BehaviourController {
         agentCells.forEach(agentCell => {
             agentCell.agent.hunger += 100
             console.log('Monkey name=' + agentCell.agent.name + " hunger=" + agentCell.agent.hunger, agentCell.x, agentCell.y, agentCell.agent.hunger);
-            if (agentCell.agent.isDead()) agentCell.type = CELL_TYPES.Dead
+            if (agentCell.agent.hunger > 2000) {
+                agentCell.type = CELL_TYPES.Dead
+            }
         });
 
         if (agentCells.length === 0) {
@@ -51,7 +53,6 @@ export default class BehaviourController {
                 const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
                 currentAgentCell.updateToPreviousCell(timeStep);
                 const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
-                agentCell.agent.currentPath.splice(0, 1);
                 newAgentCell.updateToAgent(agentCell.agent);
             }
         });
@@ -64,9 +65,10 @@ export default class BehaviourController {
         if (pathToFood === null) {
             //For now move randomly if no food found
             let randomTargetCell = this.generateCellsInMovementRange(agentCell, environment.cells).random();
-            agentCell.agent.currentPath = PATHER.generatePath(agentCell, randomTargetCell, environment);
-        } else if (agentCell.agent.currentPath === null || pathToFood.length < agentCell.agent.currentPath.length) {
-            agentCell.agent.currentPath = pathToFood;
+            let newPath = PATHER.generatePath(agentCell, randomTargetCell, environment);
+            agentCell.agent.setPath(newPath);
+        } else if (agentCell.agent.currentPath === null || agentCell.agent.currentPath.length > 0 || pathToFood.length < agentCell.agent.currentPath.length) {
+            agentCell.agent.setPath(pathToFood);
         }
     }
 

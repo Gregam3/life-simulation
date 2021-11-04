@@ -29,6 +29,7 @@ export default class Cell {
 
         this.agent = agent;
         this.type = CELL_TYPES.Agent;
+        // this.agent.currentPath.splice(0, 1);
     }
 
     updateToPreviousCell(timeStep) {

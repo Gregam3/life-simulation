@@ -20,7 +20,7 @@ export default class Pather {
 
         let agentPath = pathFinder.findPath(agentCell.x, agentCell.y, targetCell.x, targetCell.y, grid);
         //This refers to the current agent's position
-        agentPath.slice();
+        agentPath.splice(0, 1);
         return agentPath;
     }
 }

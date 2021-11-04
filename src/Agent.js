@@ -28,7 +28,7 @@ export const CELL_TYPES = {
     Dead: {
         name: 'Dead',
         character: '🍖',
-        color: 'red',
+        color: 'green',
         calories: 2000,
         obstructs: false
     }
@@ -48,7 +48,9 @@ export default class Agent {
         this.currentPath = null;
     }
 
-    isDead = () => this.hunger > DEATH_HUNGER;
+    isDead = () => {
+        return this.hunger > DEATH_HUNGER;
+    }
 
     nextY() {
         if (!this.currentPath) {
@@ -66,6 +68,10 @@ export default class Agent {
         }
 
         return this.currentPath[0][X_INDEX_PATH];
+    }
+
+    setPath(path) {
+        this.currentPath = path;
     }
 }
 

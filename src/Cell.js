@@ -7,6 +7,7 @@ export default class Cell {
         this.y = y;
         this.agent = agent;
         this.cellHistory = [];
+        this.age = 0;
         if (this.type.name !== 'Agent') {
             this.addItemToCellHistory();
         }
@@ -15,6 +16,7 @@ export default class Cell {
     updateType(newType) {
         this.type = newType;
         this.addItemToCellHistory(newType);
+        this.age = 0;
     }
 
     addItemToCellHistory(newType) {

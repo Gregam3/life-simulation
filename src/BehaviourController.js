@@ -2,7 +2,7 @@ import {CELL_TYPES} from "./Agent";
 import _ from "lodash";
 import Pather from "./Pather";
 import * as path from "path";
-import {weightedRandom} from "./Util";
+import {random, randomBooleanByPercentage, weightedRandom} from "./Util";
 
 const Util = require("./Util");
 const {safeGetCell} = require("./Environment");
@@ -40,49 +40,55 @@ export default class BehaviourController {
 
         agentCells.forEach(agentCell => this.generatePathToFood(agentCell, environment));
 
-        environment.cells = this.simulateMovements(environment.cells, timeStep);
+        environment.cells = this.simulateActions(environment.cells, timeStep);
 
         return environment;
     }
 
-    simulateMovements(cells, timeStep) {
+    simulateActions(cells, timeStep) {
         const clonedCells = _.cloneDeep(cells);
 
         clonedCells.forEach(row => row.forEach(cell => {
+            cell.age++;
             switch (cell.type.name) {
-                case 'Agent': {
-                    this.simulateAgentAction(cell, clonedCells, timeStep);
-                    break;
-                }
-                case 'Shit': {
-                    this.simulateShitAction(cell, clonedCells, timeStep);
-                    break;
-                }
+                case 'Agent': this.simulateAgentAction(cell, clonedCells, timeStep);break;
+                case 'Shit': this.simulateShitAction(cell, clonedCells, timeStep);break;
+                case 'FruitPlant': this.simulateFruitPlantAction(cell, clonedCells, timeStep);break;
                 default: break;
             }
         }));
 
         return clonedCells;
-    }// if (this.shouldAgentShit(agentCell.agent)) {
-    //     currentAgentCell.updateType(CELL_TYPES.Shit);
-    // }
+    }
 
     simulateAgentAction(agentCell, clonedCells, timeStep) {
         let agentCellClone = _.cloneDeep(agentCell);
-        if (agentCell.type.name !== 'Agent') {
-            console.error('Non-agent cell found in agent action method');
-        }
 
         if (agentCell.agent.currentPath && agentCell.agent.currentPath.length > 0) {
             const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
             const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
             currentAgentCell.updateToPreviousCell(timeStep);
+            if (this.shouldAgentShit(agentCellClone.agent)) {
+                currentAgentCell.updateType(CELL_TYPES.Shit);
+            }
             newAgentCell.updateToAgent(agentCellClone.agent);
         }
     }
 
-    simulateShitAction(cell, clonedCells, timeStep) {
+    simulateShitAction(shitCell, clonedCells, timeStep) {
+        if (shitCell.age > 5) {
+            if(randomBooleanByPercentage(0.5)) {
+                shitCell.updateType(CELL_TYPES.FruitPlant);
+            } else {
+                shitCell.updateType(CELL_TYPES.Grass);
+            }
+        }
+    }
 
+    simulateFruitPlantAction(fruitPlantCell, clonedCells, timeStep) {
+        if (fruitPlantCell.age > 2 && random(1, 0) === 1) {
+            fruitPlantCell.updateType(CELL_TYPES.Fruit);
+        }
     }
 
     shouldAgentShit(agent) {

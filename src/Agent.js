@@ -36,6 +36,11 @@ export const CELL_TYPES = {
         name: 'Shit',
         character: '💩',
         color: 'green'
+    },
+    FruitPlant: {
+        name: 'FruitPlant',
+        character: '🌱',
+        color: 'green'
     }
 }
 

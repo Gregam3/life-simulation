@@ -12,3 +12,11 @@ export function trueRange(max, min = 0) {
 export function weightedRandom(min, max) {
     return Math.round(max / (Math.random() * max + min));
 }
+
+export const random = (max, min = 0) => {
+    return min + Math.floor(Math.random() * (max - min) + 1);
+}
+
+export const randomBooleanByPercentage = (percentage0To1) => {
+    return Math.random() >= percentage0To1;
+}

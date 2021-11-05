@@ -1,6 +1,7 @@
 import React from "react";
 import Agent, {CELL_TYPES} from "./Agent";
 import Cell from "./Cell";
+import {random} from "./Util";
 
 const range = (i) => {
     return [...Array(i).keys()];
@@ -16,10 +17,6 @@ const invertKeys = (json) => {
 
 Array.prototype.random = function () {
     return this[Math.floor((Math.random() * this.length))];
-}
-
-const random = (max, min = 0) => {
-    return min + Math.floor(Math.random() * (max - min) + 1);
 }
 
 const randomKey = function (obj) {
@@ -89,7 +86,7 @@ const TREE_CHANCE_ONE_IN_X = 10;
 const AGENT_CHANCE_ONE_IN_X = 10;
 const MINIMUM_AGENTS = 2;
 
-const NAMES = ['Augie','Indy','Sabine','Cotton','Flash','Whiskey','Titus','Murphy','Astro','Amber','Godiva','Arnie','Cobweb','Joe','Maxine','Chi Chi','Ryder','Bruno','Genie','Gypsy','Wilber','Blast','Skippy','Honey','Elvis','Solomon','Powder','Maggie','Einstein','Quinn','Fonzie','Clancy','Maxwell','Natasha','Flopsy','Presley','Penny','Tanner','Amy','Goldie','Kelly','Sissy','Butch','Ringo','Puppy','Jersey','Chief','Kipper','Abbey','Scooby-doo','Chip','Abel','Sweetie','Porky','Jelly','Paris','Silver','Maggie-mae','Nana','Sally','Sophie','Barbie','Chippy','Guido','Vegas','Ziggy','Casper','Binky','Finnegan','Gretchen','Bucko','Poppy','Pudge','Shaggy','Bubba','Bessie','Summer','Bug','Monster','Dreamer','Scout','Patsy','Kobe','Toni','Willy','Tigger','Angel','Bosco','Kona','Chad','Tiger','Guy','Kerry','Tiki','Picasso','Miasy','Titan','Charlie','Mitzi','Layla'];
+const NAMES = ['Sona', 'Greg', 'Corey', 'Beth', 'Ryxxed', 'Meloonius', 'Agent J', 'Honeybadger', 'Augie','Indy','Sabine','Cotton','Flash','Whiskey','Titus','Murphy','Astro','Amber','Godiva','Arnie','Cobweb','Joe','Maxine','Chi Chi','Ryder','Bruno','Genie','Gypsy','Wilber','Blast','Skippy','Honey','Elvis','Solomon','Powder','Maggie','Einstein','Quinn','Fonzie','Clancy','Maxwell','Natasha','Flopsy','Presley','Penny','Tanner','Amy','Goldie','Kelly','Sissy','Butch','Ringo','Puppy','Jersey','Chief','Kipper','Abbey','Scooby-doo','Chip','Abel','Sweetie','Porky','Jelly','Paris','Silver','Maggie-mae','Nana','Sally','Sophie','Barbie','Chippy','Guido','Vegas','Ziggy','Casper','Binky','Finnegan','Gretchen','Bucko','Poppy','Pudge','Shaggy','Bubba','Bessie','Summer','Bug','Monster','Dreamer','Scout','Patsy','Kobe','Toni','Willy','Tigger','Angel','Bosco','Kona','Chad','Tiger','Guy','Kerry','Tiki','Picasso','Miasy','Titan','Charlie','Mitzi','Layla'];
 
 class Environment {
     constructor(width, height) {
@@ -161,7 +158,7 @@ class Environment {
                 const r = random(AGENT_CHANCE_ONE_IN_X);
                 if (cell.type === CELL_TYPES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
                     cell.type = CELL_TYPES.Agent;
-                    cell.agent = new Agent(NAMES.pop(), cell.x, cell.y, 0);
+                    cell.agent = new Agent(NAMES.random(), cell.x, cell.y, 0);
                 }
                 return cell;
             }));

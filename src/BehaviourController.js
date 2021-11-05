@@ -10,7 +10,7 @@ const {safeGetCell} = require("./Environment");
 const cartesianProduct = items =>
     items.flatMap(outerIndex => items.flatMap(innerIndex => [{xChange: innerIndex, yChange: outerIndex}]));
 
-const visionRange = cartesianProduct(Util.trueRange(2, -2));
+const generateVisionRange = visionRange => cartesianProduct(Util.trueRange(visionRange, visionRange * -1));
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
 
 const PATHER = new Pather();
@@ -26,10 +26,17 @@ export default class BehaviourController {
         let agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
 
         agentCells.forEach(agentCell => {
-            agentCell.agent.hunger += 100
-            console.log('Monkey name=' + agentCell.agent.name + " hunger=" + agentCell.agent.hunger, agentCell.x, agentCell.y, agentCell.agent.hunger);
+            agentCell.agent.hunger += agentCell.agent.mutations.hungerBuildRate;
+
+            if (!environment.debugAgentName) {
+                console.log('[y=' + agentCell.y + '|x=' + agentCell.x + '] name=' + agentCell.agent.name + ", hunger=" + agentCell.agent.hunger);
+            } else if (agentCell.agent.name === environment.debugAgentName) {
+                console.log('[y=' + agentCell.y + '|x=' + agentCell.x + '] name=' + agentCell.agent.name + ", hunger=" + agentCell.agent.hunger);
+            }
+
             if (agentCell.agent.hunger > 2000) {
-                agentCell.type = CELL_TYPES.Dead
+                console.log(agentCell.agent.name + " has died of hunger")
+                agentCell.updateType(CELL_TYPES.Dead)
             }
         });
 
@@ -39,29 +46,43 @@ export default class BehaviourController {
         }
 
         agentCells.forEach(agentCell => this.generatePathToFood(agentCell, environment));
-
-        environment.cells = this.simulateActions(environment.cells, timeStep);
+        environment.cells = this.simulateActions(environment, timeStep);
 
         return environment;
     }
 
-    simulateActions(cells, timeStep) {
-        const clonedCells = _.cloneDeep(cells);
+    simulateActions(environment, timeStep) {
+        const clonedCells = _.cloneDeep(environment.cells);
 
         clonedCells.forEach(row => row.forEach(cell => {
             cell.age++;
             switch (cell.type.name) {
-                case 'Agent': this.simulateAgentAction(cell, clonedCells, timeStep);break;
-                case 'Shit': this.simulateShitAction(cell, clonedCells, timeStep);break;
-                case 'FruitPlant': this.simulateFruitPlantAction(cell, clonedCells, timeStep);break;
-                default: break;
+                //TODO put inside of types themselves
+                case 'Agent':
+                    this.simulateAgentAction(cell, clonedCells, timeStep, environment);
+                    break;
+                case 'Shit':
+                    this.simulateShitAction(cell, clonedCells, timeStep);
+                    break;
+                case 'FruitPlant':
+                    this.simulateFruitPlantAction(cell, clonedCells, timeStep);
+                    break;
+                case 'Dead':
+                    this.simulateDeadAction(cell, clonedCells, timeStep);
+                    break;
+                default:
+                    break;
             }
         }));
 
         return clonedCells;
     }
 
-    simulateAgentAction(agentCell, clonedCells, timeStep) {
+    simulateAgentAction(agentCell, clonedCells, timeStep, environment) {
+        if (environment.debugAgentName === agentCell.agent.name) {
+            console.log();
+        }
+
         let agentCellClone = _.cloneDeep(agentCell);
 
         if (agentCell.agent.currentPath && agentCell.agent.currentPath.length > 0) {
@@ -72,12 +93,14 @@ export default class BehaviourController {
                 currentAgentCell.updateType(CELL_TYPES.Shit);
             }
             newAgentCell.updateToAgent(agentCellClone.agent);
+        } else {
+            console.log();
         }
     }
 
     simulateShitAction(shitCell, clonedCells, timeStep) {
         if (shitCell.age > 5) {
-            if(randomBooleanByPercentage(0.5)) {
+            if (randomBooleanByPercentage(0.5)) {
                 shitCell.updateType(CELL_TYPES.FruitPlant);
             } else {
                 shitCell.updateType(CELL_TYPES.Grass);
@@ -97,13 +120,17 @@ export default class BehaviourController {
     }
 
     generatePathToFood(agentCell, environment) {
+        if (environment.debugAgentName === agentCell.agent.name) {
+            console.log();
+        }
+
         let pathToFood = this.getPathToFood(agentCell, environment);
-        if (pathToFood === null) {
+        if (pathToFood === null || pathToFood.length === 0) {
             //For now move randomly if no food found
             let randomTargetCell = this.generateCellsInMovementRange(agentCell, environment.cells).random();
             let newPath = PATHER.generatePath(agentCell, randomTargetCell, environment);
             agentCell.agent.setPath(newPath);
-        } else if (!agentCell.agent.currentPath || agentCell.agent.currentPath.length > 0 || pathToFood.length < agentCell.agent.currentPath.length) {
+        } else if (!agentCell.agent.currentPath || agentCell.agent.currentPath.length === 0 || pathToFood.length < agentCell.agent.currentPath.length) {
             agentCell.agent.setPath(pathToFood);
         }
     }
@@ -121,7 +148,7 @@ export default class BehaviourController {
     }
 
     generateCellsInSightRange = (agentCell, cells) => {
-        return visionRange.flatMap(positionChange => safeGetCell(
+        return generateVisionRange(agentCell.agent.mutations.visionRange).flatMap(positionChange => safeGetCell(
                 cells,
                 agentCell.x + positionChange.xChange,
                 agentCell.y + positionChange.yChange
@@ -151,6 +178,12 @@ export default class BehaviourController {
         return {
             xChange,
             yChange
+        }
+    }
+
+    simulateDeadAction(cell, clonedCells, timeStep) {
+        if (cell.age > 5 + random(10, 5)) {
+            cell.updateType(CELL_TYPES.Bones);
         }
     }
 }

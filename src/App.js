@@ -1,22 +1,36 @@
-import logo from './logo.svg';
 import './App.css';
 import React from "react";
 import Environment from "./Environment";
 import BehaviourController from "./BehaviourController";
-import {CELL_TYPES} from "./Agent";
+import Slider from 'react-rangeslider'
+import 'react-rangeslider/lib/index.css'
+import _ from "lodash";
 
 const range = (i) => {
     return [...Array(i).keys()];
 }
 
-const environment = new Environment(20, 10);
+let environmentArchive = {};
+
+const environment = new Environment(10, 30,
+    {
+        waterBodies: 15,
+        treeChance1InX: 10,
+        agentChance1InX: 10,
+        minimumAgents: 2,
+        agentMutations: {
+            visionRange: 4,
+            hungerBuildRate: 100
+        }
+    });
 const BEHAVIOUR_CONTROLLER = new BehaviourController();
+const numericStringSortCollator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            timeStep: 1, environment
+            timeStep: 1, currentEnvironment: environment
         }
     }
 
@@ -25,13 +39,23 @@ class App extends React.Component {
     }
 
     tick() {
-        if (this.state.environment.end) {
-            console.log('All Monkeys are dead :(')
+        if (this.state.paused) {
+            console.log("Paused")
         } else {
-            this.setState({
-                timeStep: this.state.timeStep + 1,
-                cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.environment, this.state.timeStep)
-            });
+            if (this.state.currentEnvironment.end) {
+                console.log('All Monkeys are dead :(');
+            } else {
+                this.maxTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare).reverse()[0];
+                this.minTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare)[0];
+                this.setState({
+                    timeStep: this.state.timeStep + 1,
+                    cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.currentEnvironment, this.state.timeStep)
+                });
+                environmentArchive[this.state.timeStep] = _.cloneDeep(this.state.currentEnvironment);
+                if (environmentArchive[this.state.timeStep - 10]) {
+                    delete environmentArchive[this.state.timeStep - 10];
+                }
+            }
         }
     }
 
@@ -39,28 +63,54 @@ class App extends React.Component {
         clearInterval(this.interval);
     }
 
+    maxTimeStep = 0;
+    minTimeStep = 0;
+
     render() {
         return (
             <div className="App">
                 <header className="App-header">
                     <h1>Emergence</h1>
-                    Time step: {this.state.timeStep}
-                    {this.renderCells(this.state.environment.cells)}
+                    <span>
+                        {this.state.timeStep > this.minTimeStep && <button type="button" onClick={() => this.changeTimeStep(-1)}>⬅</button>}
+                        Time step: {this.state.timeStep}
+                        {this.state.timeStep < this.maxTimeStep && <button type="button" onClick={() => this.changeTimeStep(1)}>➡</button>}
+                    </span>
+                    <button type="button" onClick={() => this.setState({paused: !this.state.paused})}>
+                        {this.state.paused ? "⏯" : "⏸"}
+                    </button>
+                    <p>Debug agent name: {this.state.currentEnvironment.debugAgentName}</p>
+                    {this.renderCells(this.state.currentEnvironment.cells)}
                 </header>
             </div>
         );
+    }
+
+    changeTimeStep(timeStepChange) {
+        let newTimeStep = this.state.timeStep + timeStepChange;
+        this.setState({
+            timeStep: newTimeStep,
+            currentEnvironment: environmentArchive[newTimeStep]
+        })
     }
 
     renderCells(cells) {
         return range(cells.length).map(x => <div>{range(cells[0].length).map(y => this.renderCell(cells[x][y]))}</div>);
     }
 
-    renderCell(tile) {
+    renderCell(cell) {
         return <span style={{
-            backgroundColor: tile.type.color,
+            backgroundColor: cell.type.color,
             width: '25px',
             display: 'inline-block'
-        }}>{tile.type.character}</span>;
+        }}
+        onClick={() => {
+            if (cell.agent) {
+                const newEnvironment = this.state.currentEnvironment;
+                newEnvironment.debugAgentName = cell.agent.name;
+                this.setState({currentEnvironment: newEnvironment});
+            }
+        }}>{cell.type.character}</span>;
     }
 }
 

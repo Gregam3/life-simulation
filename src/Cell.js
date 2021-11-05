@@ -14,9 +14,9 @@ export default class Cell {
     }
 
     updateType(newType) {
+        this.age = 0;
         this.type = newType;
         this.addItemToCellHistory(newType);
-        this.age = 0;
     }
 
     addItemToCellHistory(newType) {
@@ -31,7 +31,7 @@ export default class Cell {
 
         this.agent = agent;
         this.type = CELL_TYPES.Agent;
-        // this.agent.currentPath.splice(0, 1);
+        this.agent.currentPath.splice(0, 1);
     }
 
     updateToPreviousCell(timeStep) {

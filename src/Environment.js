@@ -81,18 +81,15 @@ export const safeGetCell = (cells, x, y) => {
 }
 
 //generation parameters
-const WATER_BODIES = 15;
-const TREE_CHANCE_ONE_IN_X = 10;
-const AGENT_CHANCE_ONE_IN_X = 10;
-const MINIMUM_AGENTS = 2;
-
 const NAMES = ['Sona', 'Greg', 'Corey', 'Beth', 'Ryxxed', 'Meloonius', 'Agent J', 'Honeybadger', 'Augie','Indy','Sabine','Cotton','Flash','Whiskey','Titus','Murphy','Astro','Amber','Godiva','Arnie','Cobweb','Joe','Maxine','Chi Chi','Ryder','Bruno','Genie','Gypsy','Wilber','Blast','Skippy','Honey','Elvis','Solomon','Powder','Maggie','Einstein','Quinn','Fonzie','Clancy','Maxwell','Natasha','Flopsy','Presley','Penny','Tanner','Amy','Goldie','Kelly','Sissy','Butch','Ringo','Puppy','Jersey','Chief','Kipper','Abbey','Scooby-doo','Chip','Abel','Sweetie','Porky','Jelly','Paris','Silver','Maggie-mae','Nana','Sally','Sophie','Barbie','Chippy','Guido','Vegas','Ziggy','Casper','Binky','Finnegan','Gretchen','Bucko','Poppy','Pudge','Shaggy','Bubba','Bessie','Summer','Bug','Monster','Dreamer','Scout','Patsy','Kobe','Toni','Willy','Tigger','Angel','Bosco','Kona','Chad','Tiger','Guy','Kerry','Tiki','Picasso','Miasy','Titan','Charlie','Mitzi','Layla'];
 
 class Environment {
-    constructor(width, height) {
+    constructor(width, height, generationOptions) {
         this.width = width;
         this.height = height;
+        this.generationOptions = generationOptions;
         this.cells = this.generateEnvironment();
+        this.debugAgentName = "";
     }
 
     generateEnvironment() {
@@ -108,7 +105,7 @@ class Environment {
     }
 
     populateWater(cells) {
-        for (let i = 0; i < WATER_BODIES; i++) {
+        for (let i = 0; i < this.generationOptions.waterBodies; i++) {
             let x = random(this.width);
             let y = random(this.height);
 
@@ -142,8 +139,8 @@ class Environment {
 
     populateFruit(cells) {
         return cells.map(rows => rows.map(cell => {
-            const r = random(TREE_CHANCE_ONE_IN_X);
-            if (cell.type === CELL_TYPES.Grass && r === TREE_CHANCE_ONE_IN_X) {
+            const r = random(this.generationOptions.treeChance1InX);
+            if (cell.type === CELL_TYPES.Grass && r === this.generationOptions.treeChance1InX) {
                 cell.updateType(CELL_TYPES.Fruit);
             }
             return cell;
@@ -153,12 +150,12 @@ class Environment {
     populateAgents(cells) {
         let newCells = cells;
 
-        while (this.getCellsOfTypeFromProvided(newCells, CELL_TYPES.Agent) < MINIMUM_AGENTS) {
+        while (this.getCellsOfTypeFromProvided(newCells, CELL_TYPES.Agent) < this.generationOptions.minimumAgents) {
             newCells = cells.map(rows => rows.map(cell => {
-                const r = random(AGENT_CHANCE_ONE_IN_X);
-                if (cell.type === CELL_TYPES.Grass && r === AGENT_CHANCE_ONE_IN_X) {
+                const r = random(this.generationOptions.agentChance1InX);
+                if (cell.type === CELL_TYPES.Grass && r === this.generationOptions.agentChance1InX) {
                     cell.type = CELL_TYPES.Agent;
-                    cell.agent = new Agent(NAMES.random(), cell.x, cell.y, 0);
+                    cell.agent = new Agent(NAMES.random(), cell.x, cell.y, this.generationOptions.agentMutations);
                 }
                 return cell;
             }));

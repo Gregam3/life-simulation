@@ -35,12 +35,21 @@ export const CELL_TYPES = {
     Shit: {
         name: 'Shit',
         character: '💩',
-        color: 'green'
+        color: 'green',
+        obstructs: false
     },
     FruitPlant: {
         name: 'FruitPlant',
         character: '🌱',
-        color: 'green'
+        color: 'green',
+        obstructs: true
+    },
+    Bones: {
+        name: 'Bones',
+        character: '🦴',
+        color: 'green',
+        obstructs: false,
+        calories: 800
     }
 }
 
@@ -50,12 +59,13 @@ const X_INDEX_PATH = 0;
 const Y_INDEX_PATH = 1;
 
 export default class Agent {
-    constructor(name, x, y, hunger) {
+    constructor(name, x, y, mutations) {
         this.name = name;
         this.x = x;
         this.y = y;
-        this.hunger = hunger;
+        this.hunger = 0;
         this.currentPath = null;
+        this.mutations = mutations;
     }
 
     isDead = () => {

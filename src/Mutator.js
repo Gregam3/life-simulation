@@ -1,6 +1,5 @@
 import {randomKey, range} from "./Util";
-
-const POINTS_TO_SPEND_START = 10;
+import {random} from "lodash";
 
 const POINT_CATEGORIES = {
     visionRange: {
@@ -20,18 +19,25 @@ const POINT_CATEGORIES = {
     }
 };
 
+const POINT_CATEGORY_KEYS = Object.keys(POINT_CATEGORIES);
 export default class Mutator {
     generateRandomPointSpread() {
-        range();
         let mutators = this.generateDefaultMutators();
 
-        range(POINTS_TO_SPEND_START).forEach(i => {
-            let pointCategory = POINT_CATEGORIES[randomKey(POINT_CATEGORIES)];
-            mutators[pointCategory.name] += pointCategory.perPointBonus;
-            mutators.pointDistribution[pointCategory.name]++;
+        const pointsToSpend = Math.floor(random(0, 10));
+        mutators.pointDistribution.total = pointsToSpend;
+
+        range(pointsToSpend).forEach(i => {
+            let randomPointCategoryKey = randomKey(POINT_CATEGORIES);
+            let randomPointCategory = POINT_CATEGORIES[randomPointCategoryKey];
+            mutators[randomPointCategory.name] += randomPointCategory.perPointBonus;
+            mutators.pointDistribution[randomPointCategory.name]++;
+            this.decayOtherValues(mutators, randomPointCategoryKey);
         });
 
         console.log('Mutators', mutators);
+
+        POINT_CATEGORY_KEYS.forEach(key => mutators[key] = Math.round(mutators[key]));
 
         return mutators;
     }
@@ -42,10 +48,19 @@ export default class Mutator {
             hungerBuildRate: POINT_CATEGORIES.hungerBuildRate.default,
             shitRate: POINT_CATEGORIES.shitRate.default,
             pointDistribution: {
-                total: 10,
+                total: 0,
                 visionRange: 0,
                 hungerBuildRate: 0,
                 shitRate: 0
+            }
+        }
+    }
+
+    decayOtherValues = (mutators, chosenKey) => {
+        for(const i in POINT_CATEGORY_KEYS) {
+            const key = POINT_CATEGORY_KEYS[i];
+            if(key !== chosenKey && key.name !== "") {
+                mutators[key] -= POINT_CATEGORIES[key].perPointBonus / POINT_CATEGORY_KEYS.length;
             }
         }
     }

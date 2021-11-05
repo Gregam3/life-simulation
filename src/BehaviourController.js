@@ -10,7 +10,7 @@ const {safeGetCell} = require("./Environment");
 const cartesianProduct = items =>
     items.flatMap(outerIndex => items.flatMap(innerIndex => [{xChange: innerIndex, yChange: outerIndex}]));
 
-const generateVisionRange = visionRange => cartesianProduct(Util.trueRange(visionRange, visionRange * -1));
+const generateVisionRange = visionRange => cartesianProduct(_.range(visionRange, visionRange * -1));
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
 
 

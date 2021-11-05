@@ -38,31 +38,51 @@ export default class BehaviourController {
             return environment;
         }
 
-        //Filters out Dead agents
-        agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
         agentCells.forEach(agentCell => this.generatePathToFood(agentCell, environment));
 
-        environment.cells = this.simulateAgentMovements(agentCells, environment.cells, timeStep);
+        environment.cells = this.simulateMovements(environment.cells, timeStep);
 
         return environment;
     }
 
-    simulateAgentMovements(agentCells, cells, timeStep) {
+    simulateMovements(cells, timeStep) {
         const clonedCells = _.cloneDeep(cells);
-        agentCells.forEach(agentCell => {
-            if (agentCell.agent.currentPath.length > 0) {
-                const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
-                currentAgentCell.updateToPreviousCell(timeStep);
-                if(this.shouldAgentShit(agentCell.agent)) {
-                    //TODO add to history
-                    currentAgentCell.type = CELL_TYPES.Shit;
+
+        clonedCells.forEach(row => row.forEach(cell => {
+            switch (cell.type.name) {
+                case 'Agent': {
+                    this.simulateAgentAction(cell, clonedCells, timeStep);
+                    break;
                 }
-                const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
-                newAgentCell.updateToAgent(agentCell.agent);
+                case 'Shit': {
+                    this.simulateShitAction(cell, clonedCells, timeStep);
+                    break;
+                }
+                default: break;
             }
-        });
+        }));
 
         return clonedCells;
+    }// if (this.shouldAgentShit(agentCell.agent)) {
+    //     currentAgentCell.updateType(CELL_TYPES.Shit);
+    // }
+
+    simulateAgentAction(agentCell, clonedCells, timeStep) {
+        let agentCellClone = _.cloneDeep(agentCell);
+        if (agentCell.type.name !== 'Agent') {
+            console.error('Non-agent cell found in agent action method');
+        }
+
+        if (agentCell.agent.currentPath && agentCell.agent.currentPath.length > 0) {
+            const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
+            const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
+            currentAgentCell.updateToPreviousCell(timeStep);
+            newAgentCell.updateToAgent(agentCellClone.agent);
+        }
+    }
+
+    simulateShitAction(cell, clonedCells, timeStep) {
+
     }
 
     shouldAgentShit(agent) {
@@ -77,7 +97,7 @@ export default class BehaviourController {
             let randomTargetCell = this.generateCellsInMovementRange(agentCell, environment.cells).random();
             let newPath = PATHER.generatePath(agentCell, randomTargetCell, environment);
             agentCell.agent.setPath(newPath);
-        } else if (agentCell.agent.currentPath === null || agentCell.agent.currentPath.length > 0 || pathToFood.length < agentCell.agent.currentPath.length) {
+        } else if (!agentCell.agent.currentPath || agentCell.agent.currentPath.length > 0 || pathToFood.length < agentCell.agent.currentPath.length) {
             agentCell.agent.setPath(pathToFood);
         }
     }

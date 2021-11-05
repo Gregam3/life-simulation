@@ -20,7 +20,7 @@ const environment = new Environment(10, 25,
         treeChance1InX: 10,
         agentChance1InX: 50,
         minimumAgents: 2,
-        agentMutations: mutator.generateDefaultMutators()
+        agentMutations: mutator.generateRandomPointSpread()
     });
 const BEHAVIOUR_CONTROLLER = new BehaviourController();
 const numericStringSortCollator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});

@@ -66,6 +66,7 @@ export default class Agent {
         this.hunger = 0;
         this.currentPath = null;
         this.mutations = mutations;
+        this.hasActedThisTimestep = false;
     }
 
     isDead = () => {
@@ -92,6 +93,10 @@ export default class Agent {
 
     setPath(path) {
         this.currentPath = path;
+    }
+
+    setHasActedThisTimeStep(hasActedThisTimeStep) {
+        this.hasActedThisTimestep = hasActedThisTimeStep;
     }
 }
 

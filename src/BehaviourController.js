@@ -13,10 +13,11 @@ const cartesianProduct = items =>
 const generateVisionRange = visionRange => cartesianProduct(Util.trueRange(visionRange, visionRange * -1));
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
 
+
 const PATHER = new Pather();
 export default class BehaviourController {
     processTimeStep(environment, timeStep) {
-        console.log('timeStep:' + timeStep)
+        console.log('Time step:' + timeStep + ", agent count=" + environment.getCellsOfType(CELL_TYPES.Agent).length);
         environment = this.processAgentBehaviour(environment, timeStep);
 
         return environment;
@@ -52,49 +53,55 @@ export default class BehaviourController {
     }
 
     simulateActions(environment, timeStep) {
-        const clonedCells = _.cloneDeep(environment.cells);
+        environment.getCellsOfType(CELL_TYPES.Agent).forEach(cell => cell.agent.setHasActedThisTimeStep(false));
+        const cellsClone = _.cloneDeep(environment.cells);
 
-        clonedCells.forEach(row => row.forEach(cell => {
+        cellsClone.forEach(row => row.forEach(cell => {
+            if (cell.agent && cell.agent.name === environment.debugAgentName) {
+                console.log();
+            }
+
             cell.age++;
             switch (cell.type.name) {
                 //TODO put inside of types themselves
                 case 'Agent':
-                    this.simulateAgentAction(cell, clonedCells, timeStep, environment);
+                    this.simulateAgentAction(cell, cellsClone, timeStep, environment);
                     break;
                 case 'Shit':
-                    this.simulateShitAction(cell, clonedCells, timeStep);
+                    this.simulateShitAction(cell, cellsClone, timeStep);
                     break;
                 case 'FruitPlant':
-                    this.simulateFruitPlantAction(cell, clonedCells, timeStep);
+                    this.simulateFruitPlantAction(cell, cellsClone, timeStep);
                     break;
                 case 'Dead':
-                    this.simulateDeadAction(cell, clonedCells, timeStep);
+                    this.simulateDeadAction(cell, cellsClone, timeStep);
                     break;
                 default:
                     break;
             }
         }));
 
-        return clonedCells;
+        return cellsClone;
     }
 
     simulateAgentAction(agentCell, clonedCells, timeStep, environment) {
-        if (environment.debugAgentName === agentCell.agent.name) {
-            console.log();
-        }
-
-        let agentCellClone = _.cloneDeep(agentCell);
-
-        if (agentCell.agent.currentPath && agentCell.agent.currentPath.length > 0) {
-            const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
-            const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
-            currentAgentCell.updateToPreviousCell(timeStep);
-            if (this.shouldAgentShit(agentCellClone.agent)) {
-                currentAgentCell.updateType(CELL_TYPES.Shit);
+        if (agentCell.agent.hasActedThisTimestep === false) {
+            if (environment.debugAgentName === agentCell.agent.name) {
+                console.log();
             }
-            newAgentCell.updateToAgent(agentCellClone.agent);
-        } else {
-            console.log();
+
+            let agentCellClone = _.cloneDeep(agentCell);
+            agentCellClone.agent.setHasActedThisTimeStep(true);
+
+            if (agentCell.agent.currentPath && agentCell.agent.currentPath.length > 0) {
+                const currentAgentCell = clonedCells[agentCell.y][agentCell.x];
+                const newAgentCell = clonedCells[agentCell.agent.nextY()][agentCell.agent.nextX()];
+                currentAgentCell.updateToPreviousCell(timeStep);
+                if (this.shouldAgentShit(agentCellClone.agent)) {
+                    currentAgentCell.updateType(CELL_TYPES.Shit);
+                }
+                newAgentCell.updateToAgent(agentCellClone.agent);
+            }
         }
     }
 
@@ -116,7 +123,7 @@ export default class BehaviourController {
 
     shouldAgentShit(agent) {
         let max = 20 * (2000 / (Math.abs(2000 - agent.hunger)));
-        return weightedRandom(0, max) > (max * 0.8);
+        return weightedRandom(0, max) > (max * (1 - (agent.mutations.shitRate * 0.2)));
     }
 
     generatePathToFood(agentCell, environment) {

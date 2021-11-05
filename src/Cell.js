@@ -11,6 +11,7 @@ export default class Cell {
         if (this.type.name !== 'Agent') {
             this.addItemToCellHistory();
         }
+        //Used to ensure cells do not take multiple turns during a timestep
     }
 
     updateType(newType) {

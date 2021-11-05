@@ -20,3 +20,8 @@ export const random = (max, min = 0) => {
 export const randomBooleanByPercentage = (percentage0To1) => {
     return Math.random() >= percentage0To1;
 }
+
+export const randomKey = function (obj) {
+    const keys = Object.keys(obj);
+    return keys[keys.length * Math.random() << 0];
+};

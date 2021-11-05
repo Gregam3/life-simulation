@@ -2,9 +2,9 @@ import './App.css';
 import React from "react";
 import Environment from "./Environment";
 import BehaviourController from "./BehaviourController";
-import Slider from 'react-rangeslider'
 import 'react-rangeslider/lib/index.css'
 import _ from "lodash";
+import Mutator from "./Mutator";
 
 const range = (i) => {
     return [...Array(i).keys()];
@@ -12,30 +12,34 @@ const range = (i) => {
 
 let environmentArchive = {};
 
-const environment = new Environment(10, 30,
+const mutator = new Mutator();
+
+const environment = new Environment(10, 25,
     {
         waterBodies: 15,
         treeChance1InX: 10,
-        agentChance1InX: 10,
+        agentChance1InX: 50,
         minimumAgents: 2,
-        agentMutations: {
-            visionRange: 4,
-            hungerBuildRate: 100
-        }
+        agentMutations: mutator.generateDefaultMutators()
     });
 const BEHAVIOUR_CONTROLLER = new BehaviourController();
 const numericStringSortCollator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            timeStep: 1, currentEnvironment: environment
+            timeStep: 1,
+            currentEnvironment: environment,
+            timeScale: 100
         }
     }
 
     componentDidMount() {
-        this.interval = setInterval(() => this.tick(), 1000);
+        this.tick();
     }
 
     tick() {
@@ -57,6 +61,8 @@ class App extends React.Component {
                 }
             }
         }
+
+        sleep(10 * this.state.timeScale).then(() => this.tick());
     }
 
     componentWillUnmount() {
@@ -72,14 +78,26 @@ class App extends React.Component {
                 <header className="App-header">
                     <h1>Emergence</h1>
                     <span>
-                        {this.state.timeStep > this.minTimeStep && <button type="button" onClick={() => this.changeTimeStep(-1)}>⬅</button>}
+                        {this.state.timeStep > this.minTimeStep &&
+                        <button type="button" onClick={() => this.changeTimeStep(-1)}>⬅</button>}
                         Time step: {this.state.timeStep}
-                        {this.state.timeStep < this.maxTimeStep && <button type="button" onClick={() => this.changeTimeStep(1)}>➡</button>}
+                        {this.state.timeStep < this.maxTimeStep &&
+                        <button type="button" onClick={() => this.changeTimeStep(1)}>➡</button>}
                     </span>
                     <button type="button" onClick={() => this.setState({paused: !this.state.paused})}>
                         {this.state.paused ? "⏯" : "⏸"}
                     </button>
-                    <p>Debug agent name: {this.state.currentEnvironment.debugAgentName}</p>
+
+                    <span>
+                        Debug agent name: {this.state.currentEnvironment.debugAgentName}
+                        <button type="button" onClick={() => {
+                            let newEnvironment = this.state.currentEnvironment;
+                            newEnvironment.debugAgentName = "";
+                            this.setState({currentEnvironment: newEnvironment});
+                        }}>Clear debug</button>
+                    </span>
+                    <input type="range" min={2} max={1000} value={this.state.timeScale}
+                           onChange={event => this.setState({timeScale: event.target.value})}/>
                     {this.renderCells(this.state.currentEnvironment.cells)}
                 </header>
             </div>
@@ -104,13 +122,13 @@ class App extends React.Component {
             width: '25px',
             display: 'inline-block'
         }}
-        onClick={() => {
-            if (cell.agent) {
-                const newEnvironment = this.state.currentEnvironment;
-                newEnvironment.debugAgentName = cell.agent.name;
-                this.setState({currentEnvironment: newEnvironment});
-            }
-        }}>{cell.type.character}</span>;
+                     onClick={() => {
+                         if (cell.agent) {
+                             const newEnvironment = this.state.currentEnvironment;
+                             newEnvironment.debugAgentName = cell.agent.name;
+                             this.setState({currentEnvironment: newEnvironment});
+                         }
+                     }}>{cell.type.character}</span>;
     }
 }
 

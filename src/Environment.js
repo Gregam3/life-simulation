@@ -1,7 +1,7 @@
 import React from "react";
 import Agent, {CELL_TYPES} from "./Agent";
 import Cell from "./Cell";
-import {random} from "./Util";
+import {random, randomKey} from "./Util";
 
 const range = (i) => {
     return [...Array(i).keys()];
@@ -18,11 +18,6 @@ const invertKeys = (json) => {
 Array.prototype.random = function () {
     return this[Math.floor((Math.random() * this.length))];
 }
-
-const randomKey = function (obj) {
-    const keys = Object.keys(obj);
-    return keys[keys.length * Math.random() << 0];
-};
 
 const deepClone = obj => Object.assign({}, obj);
 

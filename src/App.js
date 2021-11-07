@@ -14,19 +14,24 @@ let environmentArchive = {};
 
 const mutator = new Mutator();
 
-const environment = new Environment(10, 20,
-    {
-        waterBodies: 15,
-        treeChance1InX: 10,
-        agentChance1InX: 50,
-        minimumAgents: 2,
-        agentMutations: mutator.generateRandomPointSpread()
-    });
+const results = [];
+
+function generateNewEnvironment() {
+    return new Environment(10, 20,
+        {
+            waterBodies: 15,
+            treeChance1InX: 10,
+            agentChance1InX: 50,
+            minimumAgents: 2,
+            agentMutations: mutator.generateRandomPointSpread()
+        });
+}
+
+const environment = generateNewEnvironment();
 const BEHAVIOUR_CONTROLLER = new BehaviourController();
 const numericStringSortCollator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-
 
 class App extends React.Component {
     constructor(props) {
@@ -42,12 +47,29 @@ class App extends React.Component {
         this.tick();
     }
 
+    environmentIterations = 0;
+
     tick() {
         if (this.state.paused) {
             console.log("Paused")
         } else {
             if (this.state.currentEnvironment.end) {
                 console.log('All Monkeys are dead :(');
+                results.push({
+                    agentMutations: this.state.currentEnvironment.generationOptions.agentMutations,
+                    timeStepReached: this.state.timeStep
+                });
+
+                this.setState({
+                    timeStep: 1,
+                    currentEnvironment: generateNewEnvironment()
+                });
+                this.environmentIterations++;
+
+                if (this.environmentIterations > 50) {
+                    const orderedResults = results.sort((a, b) => a.timeStepReached - b.timeStepReached).reverse();
+                    console.log();
+                }
             } else {
                 this.maxTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare).reverse()[0];
                 this.minTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare)[0];

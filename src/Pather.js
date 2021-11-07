@@ -18,6 +18,10 @@ export default class Pather {
 
         const pathFinder = new PF.AStarFinder();
 
+        if (agentCell === undefined || targetCell === undefined) {
+            return [];
+        }
+
         let agentPath = pathFinder.findPath(agentCell.x, agentCell.y, targetCell.x, targetCell.y, grid);
         //This refers to the current agent's position
         agentPath.splice(0, 1);

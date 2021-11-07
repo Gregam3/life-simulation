@@ -5,6 +5,7 @@ import BehaviourController from "./BehaviourController";
 import 'react-rangeslider/lib/index.css'
 import _ from "lodash";
 import Mutator from "./Mutator";
+import ReactApexChart from "react-apexcharts";
 
 const range = (i) => {
     return [...Array(i).keys()];
@@ -16,13 +17,17 @@ const mutator = new Mutator();
 
 const results = [];
 
+const WIDTH = 10;
+const HEIGHT = 10;
+
+
 function generateNewEnvironment() {
-    return new Environment(10, 20,
+    return new Environment(WIDTH, HEIGHT,
         {
-            waterBodies: 15,
+            waterBodies: Math.round(WIDTH / 1.5),
             treeChance1InX: 10,
             agentChance1InX: 50,
-            minimumAgents: 2,
+            agentSpawnCount: 4,
             agentMutations: mutator.generateRandomPointSpread()
         });
 }
@@ -48,6 +53,7 @@ class App extends React.Component {
     }
 
     environmentIterations = 0;
+    orderedResults = [];
 
     tick() {
         if (this.state.paused) {
@@ -66,8 +72,8 @@ class App extends React.Component {
                 });
                 this.environmentIterations++;
 
-                if (this.environmentIterations > 50) {
-                    const orderedResults = results.sort((a, b) => a.timeStepReached - b.timeStepReached).reverse();
+                if (this.environmentIterations > 100) {
+                    this.orderedResults = results.sort((a, b) => a.timeStepReached - b.timeStepReached).reverse();
                     console.log();
                 }
             } else {
@@ -118,7 +124,7 @@ class App extends React.Component {
                             this.setState({currentEnvironment: newEnvironment});
                         }}>Clear debug</button>
                     </span>
-                    <input type="range" min={2} max={1000} value={this.state.timeScale}
+                    <input type="range" min={0} max={1000} value={this.state.timeScale}
                            onChange={event => this.setState({timeScale: event.target.value})}/>
                     {this.renderCells(this.state.currentEnvironment.cells)}
                 </header>
@@ -153,6 +159,45 @@ class App extends React.Component {
                          }
                      }}>{cell.type.character}</span>;
     }
+
+    renderMutationChart() {
+        return <ReactApexChart options={this.state.options}
+                        series={[{
+            name: "Desktops",
+            data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
+        }]} type="line" height={350} />
+
+    }
+
+    getLoanerSplitChartData() {
+        const series = [];
+        const options = {
+            chart: {
+                type: 'bar',
+                height: 350
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                }
+            },
+            dataLabels: {
+                enabled: false
+            },
+            xaxis: {
+                categories: [],
+            }
+        };
+
+        Object.keys(this.state.reportData.reportItems.loanerBreakDown).forEach(dataItemKey => {
+            series.push(this.state.reportData.reportItems.loanerBreakDown[dataItemKey])
+            options.xaxis.categories.push(dataItemKey)
+        })
+
+        return {series, options};
+    }
 }
+
 
 export default App;

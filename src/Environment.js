@@ -76,7 +76,7 @@ export const safeGetCell = (cells, x, y) => {
 }
 
 //generation parameters
-const NAMES = ['Sona', 'Greg', 'Corey', 'Beth', 'Ryxxed', 'Meloonius', 'Agent J', 'Honeybadger', 'Augie','Indy','Sabine','Cotton','Flash','Whiskey','Titus','Murphy','Astro','Amber','Godiva','Arnie','Cobweb','Joe','Maxine','Chi Chi','Ryder','Bruno','Genie','Gypsy','Wilber','Blast','Skippy','Honey','Elvis','Solomon','Powder','Maggie','Einstein','Quinn','Fonzie','Clancy','Maxwell','Natasha','Flopsy','Presley','Penny','Tanner','Amy','Goldie','Kelly','Butch','Ringo','Puppy','Jersey','Chief','Kipper','Abbey','Scooby-doo','Chip','Abel','Sweetie','Porky','Jelly','Paris','Silver','Maggie-mae','Nana','Sally','Sophie','Barbie','Chippy','Guido','Vegas','Ziggy','Casper','Binky','Finnegan','Gretchen','Bucko','Poppy','Pudge','Shaggy','Bubba','Bessie','Summer','Bug','Monster','Dreamer','Scout','Patsy','Kobe','Toni','Willy','Tigger','Angel','Bosco','Kona','Chad','Tiger','Guy','Kerry','Tiki','Picasso','Miasy','Titan','Charlie','Mitzi','Layla'];
+const NAMES = ['Sona', 'Greg', 'Corey', 'Beth', 'Ryxxed', 'Meloonius', 'Agent J', 'Honeybadger', 'Augie', 'Indy', 'Sabine', 'Cotton', 'Flash', 'Whiskey', 'Titus', 'Murphy', 'Astro', 'Amber', 'Godiva', 'Arnie', 'Cobweb', 'Joe', 'Maxine', 'Chi Chi', 'Ryder', 'Bruno', 'Genie', 'Gypsy', 'Wilber', 'Blast', 'Skippy', 'Honey', 'Elvis', 'Solomon', 'Powder', 'Maggie', 'Einstein', 'Quinn', 'Fonzie', 'Clancy', 'Maxwell', 'Natasha', 'Flopsy', 'Presley', 'Penny', 'Tanner', 'Amy', 'Goldie', 'Kelly', 'Butch', 'Ringo', 'Puppy', 'Jersey', 'Chief', 'Kipper', 'Abbey', 'Scooby-doo', 'Chip', 'Abel', 'Sweetie', 'Porky', 'Jelly', 'Paris', 'Silver', 'Maggie-mae', 'Nana', 'Sally', 'Sophie', 'Barbie', 'Chippy', 'Guido', 'Vegas', 'Ziggy', 'Casper', 'Binky', 'Finnegan', 'Gretchen', 'Bucko', 'Poppy', 'Pudge', 'Shaggy', 'Bubba', 'Bessie', 'Summer', 'Bug', 'Monster', 'Dreamer', 'Scout', 'Patsy', 'Kobe', 'Toni', 'Willy', 'Tigger', 'Angel', 'Bosco', 'Kona', 'Chad', 'Tiger', 'Guy', 'Kerry', 'Tiki', 'Picasso', 'Miasy', 'Titan', 'Charlie', 'Mitzi', 'Layla'];
 
 class Environment {
     constructor(width, height, generationOptions) {
@@ -145,16 +145,11 @@ class Environment {
     populateAgents(cells) {
         let newCells = cells;
 
-        while (this.getCellsOfTypeFromProvided(newCells, CELL_TYPES.Agent) < this.generationOptions.minimumAgents) {
-            newCells = cells.map(rows => rows.map(cell => {
-                const r = random(this.generationOptions.agentChance1InX);
-                if (cell.type === CELL_TYPES.Grass && r === this.generationOptions.agentChance1InX) {
-                    cell.type = CELL_TYPES.Agent;
-                    cell.agent = new Agent(NAMES.random(), cell.x, cell.y, this.generationOptions.agentMutations);
-                }
-                return cell;
-            }));
-        }
+        range(this.generationOptions.agentSpawnCount).forEach(i => {
+            let toBeAgentCell = this.getCellsOfTypeFromProvided(newCells, CELL_TYPES.Grass).random();
+            toBeAgentCell.type = CELL_TYPES.Agent;
+            toBeAgentCell.agent = new Agent(NAMES.random(), toBeAgentCell.x, toBeAgentCell.y, this.generationOptions.agentMutations);
+        });
 
         return newCells;
     }

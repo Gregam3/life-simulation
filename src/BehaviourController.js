@@ -1,7 +1,6 @@
 import {CELL_TYPES} from "./Agent";
 import _ from "lodash";
 import Pather from "./Pather";
-import * as path from "path";
 import {random, randomBooleanByPercentage, weightedRandom} from "./Util";
 
 const Util = require("./Util");
@@ -12,7 +11,6 @@ const cartesianProduct = items =>
 
 const generateVisionRange = visionRange => cartesianProduct(_.range(visionRange, visionRange * -1));
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
-
 
 const PATHER = new Pather();
 export default class BehaviourController {

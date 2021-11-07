@@ -46,7 +46,6 @@ export default class BehaviourController {
             return environment;
         }
 
-        agentCells.forEach(agentCell => this.generatePathToFood(agentCell, environment));
         environment.cells = this.simulateActions(environment, timeStep);
 
         return environment;
@@ -54,9 +53,10 @@ export default class BehaviourController {
 
     simulateActions(environment, timeStep) {
         environment.getCellsOfType(CELL_TYPES.Agent).forEach(cell => cell.agent.setHasActedThisTimeStep(false));
-        const cellsClone = _.cloneDeep(environment.cells);
+        const clonedCells = _.cloneDeep(environment.cells);
+        const clonedEnvironment = _.cloneDeep(environment);
 
-        cellsClone.forEach(row => row.forEach(cell => {
+        clonedCells.forEach(row => row.forEach(cell => {
             if (cell.agent && cell.agent.name === environment.debugAgentName) {
                 console.log();
             }
@@ -65,30 +65,33 @@ export default class BehaviourController {
             switch (cell.type.name) {
                 //TODO put inside of types themselves
                 case 'Agent':
-                    this.simulateAgentAction(cell, cellsClone, timeStep, environment);
+                    this.simulateAgentAction(cell, clonedCells, timeStep, clonedEnvironment);
                     break;
                 case 'Shit':
-                    this.simulateShitAction(cell, cellsClone, timeStep);
+                    this.simulateShitAction(cell, clonedCells, timeStep);
                     break;
                 case 'FruitPlant':
-                    this.simulateFruitPlantAction(cell, cellsClone, timeStep);
+                    this.simulateFruitPlantAction(cell, clonedCells, timeStep);
                     break;
                 case 'Dead':
-                    this.simulateDeadAction(cell, cellsClone, timeStep);
+                    this.simulateDeadAction(cell, clonedCells, timeStep);
                     break;
                 default:
                     break;
             }
         }));
 
-        return cellsClone;
+        return clonedCells;
     }
 
-    simulateAgentAction(agentCell, clonedCells, timeStep, environment) {
+    simulateAgentAction(agentCell, clonedCells, timeStep, clonedEnvironment) {
         if (agentCell.agent.hasActedThisTimestep === false) {
-            if (environment.debugAgentName === agentCell.agent.name) {
+            if (clonedEnvironment.debugAgentName === agentCell.agent.name) {
                 console.log();
             }
+
+            clonedEnvironment.cells = clonedCells;
+            this.generatePathToFood(agentCell, clonedEnvironment)
 
             let agentCellClone = _.cloneDeep(agentCell);
             agentCellClone.agent.setHasActedThisTimeStep(true);
@@ -137,7 +140,7 @@ export default class BehaviourController {
             let randomTargetCell = this.generateCellsInMovementRange(agentCell, environment.cells).random();
             let newPath = PATHER.generatePath(agentCell, randomTargetCell, environment);
             agentCell.agent.setPath(newPath);
-        } else if (!agentCell.agent.currentPath || agentCell.agent.currentPath.length === 0 || pathToFood.length < agentCell.agent.currentPath.length) {
+        } else if (!agentCell.agent.currentPath || agentCell.agent.currentPath.length === 0 || pathToFood.length <= agentCell.agent.currentPath.length) {
             agentCell.agent.setPath(pathToFood);
         }
     }

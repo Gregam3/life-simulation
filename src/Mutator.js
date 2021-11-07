@@ -10,7 +10,7 @@ const POINT_CATEGORIES = {
     hungerBuildRate: {
         name: 'hungerBuildRate',
         default: 100,
-        perPointBonus: -20
+        perPointBonus: -10
     },
     shitRate: {
         name: 'shitRate',

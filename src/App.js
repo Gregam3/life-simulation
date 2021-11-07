@@ -14,7 +14,7 @@ let environmentArchive = {};
 
 const mutator = new Mutator();
 
-const environment = new Environment(10, 25,
+const environment = new Environment(10, 20,
     {
         waterBodies: 15,
         treeChance1InX: 10,
@@ -120,6 +120,7 @@ class App extends React.Component {
         return <span style={{
             backgroundColor: cell.type.color,
             width: '25px',
+            height: '25px',
             display: 'inline-block'
         }}
                      onClick={() => {

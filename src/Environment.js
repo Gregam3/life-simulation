@@ -96,6 +96,7 @@ class Environment {
         const grassPlaneCells = this.createGrassPlaneCells();
         const withWaterCells = this.populateWater(grassPlaneCells);
         const withTreeCells = this.populateFruit(withWaterCells);
+        // const withNewFruits = this.populateNewFruit(withTreeCells);
         return this.populateAgents(withTreeCells);
     }
 
@@ -141,6 +142,16 @@ class Environment {
             const r = random(this.generationOptions.treeChance1InX);
             if (cell.type === CELL_TYPES.Grass && r === this.generationOptions.treeChance1InX) {
                 cell.updateType(CELL_TYPES.Fruit);
+            }
+            return cell;
+        }));
+    }
+
+    populateNewFruit(cells) {
+        return cells.map(rows => rows.map(cell => {
+            const r = random(this.generationOptions.treeChance1InX);
+            if (cell.type === CELL_TYPES.Grass && r === this.generationOptions.treeChance1InX) {
+                cell.updateType(CELL_TYPES.NewFruit);
             }
             return cell;
         }));

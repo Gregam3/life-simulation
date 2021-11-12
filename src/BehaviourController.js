@@ -71,7 +71,10 @@ export default class BehaviourController {
                     this.simulateShitAction(cell, clonedCells, timeStep);
                     break;
                 case 'FruitPlant':
-                    this.simulateFruitPlantAction(cell, clonedCells, timeStep);
+                    this.simulateFruitPlantAction(cell);
+                    break;
+                case 'NewFruitPlant':
+                    this.simulateFruitPlantAction(cell);
                     break;
                 case 'Fruit':
                     this.simulateFruit(cell, clonedCells, timeStep);
@@ -143,9 +146,15 @@ export default class BehaviourController {
         }
     }
 
-    simulateFruitPlantAction(fruitPlantCell, clonedCells, timeStep) {
+    simulateFruitPlantAction(fruitPlantCell) {
         if (fruitPlantCell.age > 2 && random(1, 0) === 1) {
             fruitPlantCell.updateType(CELL_TYPES.Fruit);
+        }
+    }
+
+    simulateFruitPlantAction(fruitPlantCell) {
+        if (fruitPlantCell.age > 2 && random(1, 0) === 1) {
+            fruitPlantCell.updateType(CELL_TYPES.NewFruit);
         }
     }
 

@@ -4,7 +4,7 @@ import Environment from "./Environment";
 import BehaviourController from "./BehaviourController";
 import 'react-rangeslider/lib/index.css'
 import _ from "lodash";
-import Mutator, {POINT_CATEGORIES} from "./Mutator";
+import Mutator from "./Mutator";
 import ReactApexChart from "react-apexcharts";
 
 const range = (i) => {
@@ -74,8 +74,8 @@ let perPointSpentLifeExtensionByKey = {};
 const mutator = new Mutator();
 const mutationResults = [];
 
-const WIDTH = 20;
-const HEIGHT = 5;
+const WIDTH = 10;
+const HEIGHT = 10;
 
 function generateNewEnvironment() {
     return new Environment(WIDTH, HEIGHT,

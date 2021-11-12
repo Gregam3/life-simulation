@@ -50,6 +50,19 @@ export const CELL_TYPES = {
         color: 'green',
         obstructs: false,
         calories: 800
+    },
+    NewFruitPlant: {
+        name: 'NewFruitPlant',
+        character: '🌿',
+        color: 'green',
+        obstructs: true
+    },
+    NewFruit: {
+        name: 'NewFruit',
+        character: '🍅',
+        color: 'green',
+        obstructs: false,
+        calories: 1000
     }
 }
 

@@ -29,5 +29,5 @@ export const randomKey = function (obj) {
 };
 
 export const beatsPercentage = percentage => {
-    return Math.round(Math.random() - percentage)
+    return Math.random() >= percentage;
 }

@@ -15,7 +15,7 @@ const movementRange = cartesianProduct(Util.trueRange(1, -1));
 const PATHER = new Pather();
 export default class BehaviourController {
     processTimeStep(environment, timeStep) {
-        console.log('Time step:' + timeStep + ", agent count=" + environment.getCellsOfType(CELL_TYPES.Agent).length);
+        this.log('Time step:' + timeStep + ", agent count=" + environment.getCellsOfType(CELL_TYPES.Agent).length);
         environment = this.processAgentBehaviour(environment, timeStep);
 
         return environment;
@@ -28,13 +28,13 @@ export default class BehaviourController {
             agentCell.agent.hunger += agentCell.agent.mutations.hungerBuildRate;
 
             if (!environment.debugAgentName) {
-                console.log('[y=' + agentCell.y + '|x=' + agentCell.x + '] name=' + agentCell.agent.name + ", hunger=" + agentCell.agent.hunger);
+                this.log('[y=' + agentCell.y + '|x=' + agentCell.x + '] name=' + agentCell.agent.name + ", hunger=" + agentCell.agent.hunger);
             } else if (agentCell.agent.name === environment.debugAgentName) {
-                console.log('[y=' + agentCell.y + '|x=' + agentCell.x + '] name=' + agentCell.agent.name + ", hunger=" + agentCell.agent.hunger);
+                this.log('[y=' + agentCell.y + '|x=' + agentCell.x + '] name=' + agentCell.agent.name + ", hunger=" + agentCell.agent.hunger);
             }
 
             if (agentCell.agent.hunger > 2000) {
-                console.log(agentCell.agent.name + " has died of hunger")
+                this.log(agentCell.agent.name + " has died of hunger")
                 agentCell.updateType(CELL_TYPES.Dead)
             }
         });
@@ -56,7 +56,7 @@ export default class BehaviourController {
 
         clonedCells.forEach(row => row.forEach(cell => {
             if (cell.agent && cell.agent.name === environment.debugAgentName) {
-                console.log();
+                this.log();
             }
 
             cell.age++;
@@ -85,7 +85,7 @@ export default class BehaviourController {
     simulateAgentAction(agentCell, clonedCells, timeStep, clonedEnvironment) {
         if (agentCell.agent.hasActedThisTimestep === false) {
             if (clonedEnvironment.debugAgentName === agentCell.agent.name) {
-                console.log();
+                this.log();
             }
 
             clonedEnvironment.cells = clonedCells;
@@ -129,7 +129,7 @@ export default class BehaviourController {
 
     generatePathToFood(agentCell, environment) {
         if (environment.debugAgentName === agentCell.agent.name) {
-            console.log();
+            this.log();
         }
 
         let pathToFood = this.getPathToFood(agentCell, environment);
@@ -192,6 +192,12 @@ export default class BehaviourController {
     simulateDeadAction(cell, clonedCells, timeStep) {
         if (cell.age > 5 + random(10, 5)) {
             cell.updateType(CELL_TYPES.Bones);
+        }
+    }
+
+    log(content) {
+        if (false) {
+            console.log(content);
         }
     }
 }

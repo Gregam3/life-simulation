@@ -1,7 +1,7 @@
 import {randomKey, range} from "./Util";
 import {random} from "lodash";
 
-const POINT_CATEGORIES = {
+export const POINT_CATEGORIES = {
     visionRange: {
         name: 'visionRange',
         default: 3,
@@ -19,8 +19,9 @@ const POINT_CATEGORIES = {
     }
 };
 
-const POINT_CATEGORY_KEYS = Object.keys(POINT_CATEGORIES);
 export default class Mutator {
+    POINT_CATEGORY_KEYS = Object.keys(POINT_CATEGORIES)
+
     generateRandomPointSpread() {
         let mutators = this.generateDefaultMutators();
 
@@ -37,7 +38,7 @@ export default class Mutator {
 
         console.log('Mutators', mutators);
 
-        POINT_CATEGORY_KEYS.forEach(key => mutators[key] = Math.round(mutators[key]));
+        this.POINT_CATEGORY_KEYS.forEach(key => mutators[key] = Math.round(mutators[key]));
 
         return mutators;
     }
@@ -57,10 +58,10 @@ export default class Mutator {
     }
 
     decayOtherValues = (mutators, chosenKey) => {
-        for(const i in POINT_CATEGORY_KEYS) {
-            const key = POINT_CATEGORY_KEYS[i];
+        for(const i in this.POINT_CATEGORY_KEYS) {
+            const key = this.POINT_CATEGORY_KEYS[i];
             if(key !== chosenKey && key.name !== "") {
-                mutators[key] -= POINT_CATEGORIES[key].perPointBonus / POINT_CATEGORY_KEYS.length;
+                mutators[key] -= POINT_CATEGORIES[key].perPointBonus / this.POINT_CATEGORY_KEYS.length;
             }
         }
     }

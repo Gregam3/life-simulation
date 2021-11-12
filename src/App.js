@@ -4,18 +4,74 @@ import Environment from "./Environment";
 import BehaviourController from "./BehaviourController";
 import 'react-rangeslider/lib/index.css'
 import _ from "lodash";
-import Mutator from "./Mutator";
+import Mutator, {POINT_CATEGORIES} from "./Mutator";
 import ReactApexChart from "react-apexcharts";
 
 const range = (i) => {
     return [...Array(i).keys()];
 }
 
+const options = {
+    height: 350,
+    type: 'scatter',
+    animations: {
+        duration: 0
+    },
+    theme: {mode: 'dark'},
+    animation: {
+        duration: 0
+    },
+    title: {
+        text: 'Point allocation vs lifetime',
+        align: 'left'
+    },
+    yaxis: {
+        labels: {
+            formatter: val => Math.floor(val)
+        },
+        grid: {
+            padding: {
+                left: 0,
+                right: 0
+            }
+        }
+    },
+    xaxis: {
+        grid: {
+            padding: {
+                left: 0,
+                right: 0
+            }
+        }
+    },
+    grid: {
+        padding: {
+            left: 0,
+            right: 0
+        }
+    },
+    colors: ['#FF0000', '#00FF00', '#0000FF']
+}
+
+function groupBy(list, keyGetter) {
+    const map = new Map();
+    list.forEach(item => {
+        const key = keyGetter(item);
+        const collection = map.get(key);
+        if (!collection) {
+            map.set(key, [item]);
+        } else {
+            collection.push(item);
+        }
+    });
+    return map;
+}
+
 let environmentArchive = {};
 
 const mutator = new Mutator();
 
-const results = [];
+const mutationResults = [];
 
 const WIDTH = 10;
 const HEIGHT = 10;
@@ -32,6 +88,13 @@ function generateNewEnvironment() {
         });
 }
 
+const calculateAveragePerValue = (items, keyGetter) => {
+    let total = 0;
+
+    items.forEach(i => total += keyGetter(i));
+
+    return total / items.length;
+}
 const environment = generateNewEnvironment();
 const BEHAVIOUR_CONTROLLER = new BehaviourController();
 const numericStringSortCollator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
@@ -44,7 +107,8 @@ class App extends React.Component {
         this.state = {
             timeStep: 1,
             currentEnvironment: environment,
-            timeScale: 100
+            timeScale: 100,
+            shouldRender: true
         }
     }
 
@@ -61,11 +125,12 @@ class App extends React.Component {
         } else {
             if (this.state.currentEnvironment.end) {
                 console.log('All Monkeys are dead :(');
-                results.push({
+                mutationResults.push({
                     agentMutations: this.state.currentEnvironment.generationOptions.agentMutations,
                     timeStepReached: this.state.timeStep
                 });
 
+                this.charts = this.renderNewChart();
                 this.setState({
                     timeStep: 1,
                     currentEnvironment: generateNewEnvironment()
@@ -73,7 +138,7 @@ class App extends React.Component {
                 this.environmentIterations++;
 
                 if (this.environmentIterations > 100) {
-                    this.orderedResults = results.sort((a, b) => a.timeStepReached - b.timeStepReached).reverse();
+                    this.orderedResults = mutationResults.sort((a, b) => a.timeStepReached - b.timeStepReached).reverse();
                     console.log();
                 }
             } else {
@@ -90,7 +155,13 @@ class App extends React.Component {
             }
         }
 
-        sleep(10 * this.state.timeScale).then(() => this.tick());
+        let sleepTimeInMs = 10 * this.state.timeScale;
+
+        if (!this.state.shouldRender) {
+            sleepTimeInMs = 0;
+        }
+
+        sleep(sleepTimeInMs).then(() => this.tick());
     }
 
     componentWillUnmount() {
@@ -101,35 +172,65 @@ class App extends React.Component {
     minTimeStep = 0;
 
     render() {
-        return (
-            <div className="App">
-                <header className="App-header">
-                    <h1>Emergence</h1>
-                    <span>
+        if (this.state.shouldRender) {
+
+            return (
+                <div className="App">
+                    <header className="App-header">
+                        <h1>Emergence</h1>
+                        <span>
                         {this.state.timeStep > this.minTimeStep &&
                         <button type="button" onClick={() => this.changeTimeStep(-1)}>⬅</button>}
-                        Time step: {this.state.timeStep}
-                        {this.state.timeStep < this.maxTimeStep &&
-                        <button type="button" onClick={() => this.changeTimeStep(1)}>➡</button>}
+                            Time step: {this.state.timeStep}
+                            {this.state.timeStep < this.maxTimeStep &&
+                            <button type="button" onClick={() => this.changeTimeStep(1)}>➡</button>}
                     </span>
-                    <button type="button" onClick={() => this.setState({paused: !this.state.paused})}>
-                        {this.state.paused ? "⏯" : "⏸"}
-                    </button>
+                        <button type="button" onClick={() => this.setState({paused: !this.state.paused})}>
+                            {this.state.paused ? "⏯" : "⏸"}
+                        </button>
 
-                    <span>
+                        <span>
                         Debug agent name: {this.state.currentEnvironment.debugAgentName}
-                        <button type="button" onClick={() => {
-                            let newEnvironment = this.state.currentEnvironment;
-                            newEnvironment.debugAgentName = "";
-                            this.setState({currentEnvironment: newEnvironment});
-                        }}>Clear debug</button>
+                            <button type="button" onClick={() => {
+                                let newEnvironment = this.state.currentEnvironment;
+                                newEnvironment.debugAgentName = "";
+                                this.setState({currentEnvironment: newEnvironment});
+                            }}>Clear debug</button>
                     </span>
-                    <input type="range" min={0} max={1000} value={this.state.timeScale}
-                           onChange={event => this.setState({timeScale: event.target.value})}/>
-                    {this.renderCells(this.state.currentEnvironment.cells)}
+                        <input type="range" min={5} max={1000} value={this.state.timeScale}
+                               onChange={event => this.setState({timeScale: event.target.value})}/>
+                        {this.renderCells(this.state.currentEnvironment.cells)}
+                        <p>Environment Iteration count: {this.environmentIterations}</p>
+                        <button type="button" onClick={() => this.setState({shouldRender: false})}>Disable rendering</button>
+                        {this.getChartRenders()}
+                    </header>
+                </div>
+            );
+        } else {
+            return <div className="App">
+                <header className="App-header">
+                    <h1>Emergence</h1>
+                    <button type="button" onClick={() => this.setState({shouldRender: true})}>Enable rendering</button>
+                    <p>Environment Iteration count: {this.environmentIterations}</p>
+                    {this.getChartRenders()}
                 </header>
             </div>
-        );
+        }
+    }
+
+    charts = null;
+
+    getChartRenders() {
+        if (this.charts === null) {
+            this.charts = this.renderNewChart();
+        }
+
+        return this.charts;
+    }
+
+    renderNewChart() {
+        return <ReactApexChart options={options} series={this.getMutatorChartSeries()}
+                               type="scatter" height={300} width={400}/>;
     }
 
     changeTimeStep(timeStepChange) {
@@ -160,42 +261,31 @@ class App extends React.Component {
                      }}>{cell.type.character}</span>;
     }
 
-    renderMutationChart() {
-        return <ReactApexChart options={this.state.options}
-                        series={[{
-            name: "Desktops",
-            data: [10, 41, 35, 51, 49, 62, 69, 91, 148]
-        }]} type="line" height={350} />
-
-    }
-
-    getLoanerSplitChartData() {
+    getMutatorChartSeries() {
         const series = [];
-        const options = {
-            chart: {
-                type: 'bar',
-                height: 350
-            },
-            plotOptions: {
-                bar: {
-                    borderRadius: 4,
-                    horizontal: true,
-                }
-            },
-            dataLabels: {
-                enabled: false
-            },
-            xaxis: {
-                categories: [],
-            }
-        };
 
-        Object.keys(this.state.reportData.reportItems.loanerBreakDown).forEach(dataItemKey => {
-            series.push(this.state.reportData.reportItems.loanerBreakDown[dataItemKey])
-            options.xaxis.categories.push(dataItemKey)
-        })
 
-        return {series, options};
+        mutator.POINT_CATEGORY_KEYS.forEach(key => {
+            const seriesItem = {
+                name: key,
+                data: []
+            };
+
+            const itemsGrouped = groupBy(mutationResults, result => result.agentMutations.pointDistribution[key]);
+            const itemsGroupedMean = Array.from(itemsGrouped)
+                .map(([key, value]) => ({key, value: calculateAveragePerValue(value, v => v.timeStepReached)}));
+
+            itemsGroupedMean.forEach(entry => {
+                seriesItem.data.push([
+                    entry.key,
+                    entry.value
+                ]);
+            });
+
+            series.push(seriesItem);
+        });
+
+        return series;
     }
 }
 

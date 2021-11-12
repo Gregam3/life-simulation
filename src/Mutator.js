@@ -9,11 +9,11 @@ export const POINT_CATEGORIES = {
         perPointBonus: 1,
         max: MAX_POINTS_TO_SPEND + 3
     },
-    hungerBuildRate: {
-        name: 'hungerBuildRate',
-        default: 100,
-        perPointBonus: -10,
-        max: 75
+    reduceHungerBuildRate: {
+        name: 'reduceHungerBuildRate',
+        default: 0,
+        perPointBonus: -1,
+        max: 50
     },
     shitRate: {
         name: 'shitRate',
@@ -36,6 +36,8 @@ function diminishValue(n, maxIn, maxOut, exponent) {
     return n
 }
 
+// hardcoded to even previousItemAverage
+const DECAY_COEFFICIENT = 0.52;
 export default class Mutator {
     POINT_CATEGORY_KEYS = Object.keys(POINT_CATEGORIES)
 
@@ -67,12 +69,12 @@ export default class Mutator {
     generateDefaultMutators = () => {
         return {
             visionRange: POINT_CATEGORIES.visionRange.default,
-            hungerBuildRate: POINT_CATEGORIES.hungerBuildRate.default,
+            reduceHungerBuildRate: POINT_CATEGORIES.reduceHungerBuildRate.default,
             shitRate: POINT_CATEGORIES.shitRate.default,
             pointDistribution: {
                 total: 0,
                 visionRange: 0,
-                hungerBuildRate: 0,
+                reduceHungerBuildRate: 0,
                 shitRate: 0
             }
         }
@@ -82,7 +84,7 @@ export default class Mutator {
         for (const i in this.POINT_CATEGORY_KEYS) {
             const key = this.POINT_CATEGORY_KEYS[i];
             if (key !== chosenKey && key.name !== "") {
-                mutators[key] -= POINT_CATEGORIES[key].perPointBonus / this.POINT_CATEGORY_KEYS.length;
+                mutators[key] -= POINT_CATEGORIES[key].perPointBonus / (this.POINT_CATEGORY_KEYS.length * DECAY_COEFFICIENT);
             }
         }
     }

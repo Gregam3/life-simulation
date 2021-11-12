@@ -26,7 +26,7 @@ export default class BehaviourController {
         let agentCells = environment.getCellsOfType(CELL_TYPES.Agent);
 
         agentCells.forEach(agentCell => {
-            agentCell.agent.hunger += agentCell.agent.mutations.hungerBuildRate;
+            agentCell.agent.hunger += (100 - agentCell.agent.mutations.reduceHungerBuildRate);
 
             if (!environment.debugAgentName) {
                 this.log('[y=' + agentCell.y + '|x=' + agentCell.x + '] name=' + agentCell.agent.name + ", hunger=" + agentCell.agent.hunger);

@@ -70,11 +70,12 @@ function groupBy(list, keyGetter) {
 let environmentArchive = {};
 
 let perPointSpentLifeExtension = 0;
+let perPointSpentLifeExtensionByKey = {};
 const mutator = new Mutator();
 const mutationResults = [];
 
-const WIDTH = 10;
-const HEIGHT = 10;
+const WIDTH = 20;
+const HEIGHT = 5;
 
 function generateNewEnvironment() {
     return new Environment(WIDTH, HEIGHT,
@@ -116,7 +117,6 @@ class App extends React.Component {
     }
 
     environmentIterations = 0;
-    orderedResults = [];
 
     tick() {
         if (this.state.paused) {
@@ -135,40 +135,33 @@ class App extends React.Component {
                     currentEnvironment: generateNewEnvironment()
                 });
                 this.environmentIterations++;
-
-                if (this.environmentIterations > 100) {
-                    this.orderedResults = mutationResults.sort((a, b) => a.timeStepReached - b.timeStepReached).reverse();
-                    console.log();
-                }
             } else {
-                this.maxTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare).reverse()[0];
-                this.minTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare)[0];
-                this.setState({
-                    timeStep: this.state.timeStep + 1,
-                    cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.currentEnvironment, this.state.timeStep)
-                });
-                environmentArchive[this.state.timeStep] = _.cloneDeep(this.state.currentEnvironment);
-                if (environmentArchive[this.state.timeStep - 10]) {
-                    delete environmentArchive[this.state.timeStep - 10];
+                // this.maxTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare).reverse()[0];
+                // this.minTimeStep = Object.keys(environmentArchive).sort(numericStringSortCollator.compare)[0];
+                if (this.state.shouldRender || true) {
+                    this.setState({
+                        timeStep: this.state.timeStep + 1,
+                        cells: BEHAVIOUR_CONTROLLER.processTimeStep(this.state.currentEnvironment, this.state.timeStep)
+                    });
+                    // environmentArchive[this.state.timeStep] = _.cloneDeep(this.state.currentEnvironment);
+                    // if (environmentArchive[this.state.timeStep - 10]) {
+                    //     delete environmentArchive[this.state.timeStep - 10];
+                    // }
                 }
             }
         }
 
         let sleepTimeInMs = 10 * this.state.timeScale;
 
-        if (!this.state.shouldRender) {
-            sleepTimeInMs = 0;
-        }
-
         if (this.state.paused) {
             sleepTimeInMs = 2_500;
         }
 
-        sleep(sleepTimeInMs).then(() => this.tick());
-    }
-
-    componentWillUnmount() {
-        clearInterval(this.interval);
+        if (this.state.shouldRender) {
+            sleep(sleepTimeInMs).then(() => this.tick());
+        } else {
+            sleep(1).then(() => this.tick());
+        }
     }
 
     maxTimeStep = 0;
@@ -188,7 +181,7 @@ class App extends React.Component {
                             {this.state.timeStep < this.maxTimeStep &&
                             <button type="button" onClick={() => this.changeTimeStep(1)}>➡</button>}
                     </span>
-                        <button type="button" onClick={() => this.setState({paused: !this.state.paused, })}>
+                        <button type="button" onClick={() => this.setState({paused: !this.state.paused,})}>
                             {this.state.paused ? "⏯" : "⏸"}
                         </button>
 
@@ -203,10 +196,7 @@ class App extends React.Component {
                         <input type="range" min={5} max={1000} value={this.state.timeScale}
                                onChange={event => this.setState({timeScale: event.target.value})}/>
                         {this.renderCells(this.state.currentEnvironment.cells)}
-                        <p>Environment Iteration count: {this.environmentIterations}</p>
-                        <p>Per point spent life extension {perPointSpentLifeExtension}</p>
-                        <button type="button" onClick={() => this.setState({shouldRender: false})}>Disable rendering</button>
-                        {this.getChartRenders()}
+                        {this.renderStats()}
                     </header>
                 </div>
             );
@@ -215,12 +205,21 @@ class App extends React.Component {
                 <header className="App-header">
                     <h1>Emergence</h1>
                     <button type="button" onClick={() => this.setState({shouldRender: true})}>Enable rendering</button>
-                    <p>Environment Iteration count: {this.environmentIterations}</p>
-                    <p>Per point spent life extension {perPointSpentLifeExtension}</p>
-                    {this.getChartRenders()}
+                    {this.renderStats()}
                 </header>
             </div>
         }
+    }
+
+    renderStats() {
+        return <>
+            <p>Environment Iteration count: {this.environmentIterations}</p>
+            <div style={{fontSize: 10}}>Per point spent life extension: {Math.round(perPointSpentLifeExtension)}</div>
+            {Object.keys(perPointSpentLifeExtensionByKey).map(key =>
+                <div style={{fontSize: 10}}>{key} per point spent life extension: {perPointSpentLifeExtensionByKey[key].toFixed(2)}</div>)}
+            <button type="button" onClick={() => this.setState({shouldRender: false})}>Disable rendering</button>
+            {this.getChartRenders()}
+        </>;
     }
 
     charts = null;
@@ -297,6 +296,8 @@ class App extends React.Component {
     updatePerPointTimeStepIncrease(series) {
         const timeStepIncreaseAveragePerPointCategories = [];
 
+        perPointSpentLifeExtensionByKey = {};
+
         series.forEach(seriesItem => {
             const differencesBy1PointIntervalForCurrentCategory = [];
             let previousItemAverage = null;
@@ -312,7 +313,9 @@ class App extends React.Component {
                 previousItemAverage = currentItemAverage;
             })
 
-            timeStepIncreaseAveragePerPointCategories.push(calculateAveragePerValue(differencesBy1PointIntervalForCurrentCategory, v => v));
+            let mean = calculateAveragePerValue(differencesBy1PointIntervalForCurrentCategory, v => v);
+            timeStepIncreaseAveragePerPointCategories.push(mean);
+            perPointSpentLifeExtensionByKey[seriesItem.name] = mean;
         });
 
         perPointSpentLifeExtension = calculateAveragePerValue(timeStepIncreaseAveragePerPointCategories, v => v);

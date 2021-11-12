@@ -69,13 +69,12 @@ function groupBy(list, keyGetter) {
 
 let environmentArchive = {};
 
+let perPointSpentLifeExtension = 0;
 const mutator = new Mutator();
-
 const mutationResults = [];
 
 const WIDTH = 10;
 const HEIGHT = 10;
-
 
 function generateNewEnvironment() {
     return new Environment(WIDTH, HEIGHT,
@@ -161,6 +160,10 @@ class App extends React.Component {
             sleepTimeInMs = 0;
         }
 
+        if (this.state.paused) {
+            sleepTimeInMs = 2_500;
+        }
+
         sleep(sleepTimeInMs).then(() => this.tick());
     }
 
@@ -185,7 +188,7 @@ class App extends React.Component {
                             {this.state.timeStep < this.maxTimeStep &&
                             <button type="button" onClick={() => this.changeTimeStep(1)}>➡</button>}
                     </span>
-                        <button type="button" onClick={() => this.setState({paused: !this.state.paused})}>
+                        <button type="button" onClick={() => this.setState({paused: !this.state.paused, })}>
                             {this.state.paused ? "⏯" : "⏸"}
                         </button>
 
@@ -201,6 +204,7 @@ class App extends React.Component {
                                onChange={event => this.setState({timeScale: event.target.value})}/>
                         {this.renderCells(this.state.currentEnvironment.cells)}
                         <p>Environment Iteration count: {this.environmentIterations}</p>
+                        <p>Per point spent life extension {perPointSpentLifeExtension}</p>
                         <button type="button" onClick={() => this.setState({shouldRender: false})}>Disable rendering</button>
                         {this.getChartRenders()}
                     </header>
@@ -212,6 +216,7 @@ class App extends React.Component {
                     <h1>Emergence</h1>
                     <button type="button" onClick={() => this.setState({shouldRender: true})}>Enable rendering</button>
                     <p>Environment Iteration count: {this.environmentIterations}</p>
+                    <p>Per point spent life extension {perPointSpentLifeExtension}</p>
                     {this.getChartRenders()}
                 </header>
             </div>
@@ -264,18 +269,17 @@ class App extends React.Component {
     getMutatorChartSeries() {
         const series = [];
 
-
         mutator.POINT_CATEGORY_KEYS.forEach(key => {
             const seriesItem = {
                 name: key,
                 data: []
             };
 
-            const itemsGrouped = groupBy(mutationResults, result => result.agentMutations.pointDistribution[key]);
-            const itemsGroupedMean = Array.from(itemsGrouped)
+            const groupedMutationResults = groupBy(mutationResults, result => result.agentMutations.pointDistribution[key]);
+            const groupedMutationResultsMeanPerPointSpent = Array.from(groupedMutationResults)
                 .map(([key, value]) => ({key, value: calculateAveragePerValue(value, v => v.timeStepReached)}));
 
-            itemsGroupedMean.forEach(entry => {
+            groupedMutationResultsMeanPerPointSpent.forEach(entry => {
                 seriesItem.data.push([
                     entry.key,
                     entry.value
@@ -285,7 +289,33 @@ class App extends React.Component {
             series.push(seriesItem);
         });
 
+        this.updatePerPointTimeStepIncrease(series);
+
         return series;
+    }
+
+    updatePerPointTimeStepIncrease(series) {
+        const timeStepIncreaseAveragePerPointCategories = [];
+
+        series.forEach(seriesItem => {
+            const differencesBy1PointIntervalForCurrentCategory = [];
+            let previousItemAverage = null;
+            let currentItemAverage = null;
+
+            seriesItem.data.forEach(dataItem => {
+                currentItemAverage = dataItem[1];
+
+                if (previousItemAverage !== null && currentItemAverage !== null) {
+                    differencesBy1PointIntervalForCurrentCategory.push(currentItemAverage - previousItemAverage);
+                }
+
+                previousItemAverage = currentItemAverage;
+            })
+
+            timeStepIncreaseAveragePerPointCategories.push(calculateAveragePerValue(differencesBy1PointIntervalForCurrentCategory, v => v));
+        });
+
+        perPointSpentLifeExtension = calculateAveragePerValue(timeStepIncreaseAveragePerPointCategories, v => v);
     }
 }
 

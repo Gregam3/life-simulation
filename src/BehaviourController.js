@@ -13,6 +13,7 @@ const generateVisionRange = visionRange => cartesianProduct(_.range(visionRange,
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
 
 const PATHER = new Pather();
+const MAX_TIME_STEP = 300;
 export default class BehaviourController {
     processTimeStep(environment, timeStep) {
         this.log('Time step:' + timeStep + ", agent count=" + environment.getCellsOfType(CELL_TYPES.Agent).length);
@@ -39,7 +40,7 @@ export default class BehaviourController {
             }
         });
 
-        if (agentCells.length === 0) {
+        if (agentCells.length === 0 || timeStep >= MAX_TIME_STEP) {
             environment.end = true;
             return environment;
         }

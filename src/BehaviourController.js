@@ -1,19 +1,20 @@
 import {CELL_TYPES} from "./Agent";
 import _ from "lodash";
 import Pather from "./Pather";
-import {random, randomBooleanByPercentage, weightedRandom} from "./Util";
+import {beatsPercentage, random, randomBooleanByPercentage, weightedRandom} from "./Util";
 
 const Util = require("./Util");
-const {safeGetCell} = require("./Environment");
+const {safeGetCell, getCellsOfTypeFromProvided} = require("./Environment");
 
 const cartesianProduct = items =>
     items.flatMap(outerIndex => items.flatMap(innerIndex => [{xChange: innerIndex, yChange: outerIndex}]));
 
 const generateVisionRange = visionRange => cartesianProduct(_.range(visionRange, visionRange * -1));
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
-
 const PATHER = new Pather();
 const MAX_TIME_STEP = 300;
+
+const MAX_FRUIT_COUNT = 10;
 export default class BehaviourController {
     processTimeStep(environment, timeStep) {
         this.log('Time step:' + timeStep + ", agent count=" + environment.getCellsOfType(CELL_TYPES.Agent).length);
@@ -45,12 +46,12 @@ export default class BehaviourController {
             return environment;
         }
 
-        environment.cells = this.simulateActions(environment, timeStep);
+        environment.cells = this.simulateChangeInCells(environment, timeStep);
 
         return environment;
     }
 
-    simulateActions(environment, timeStep) {
+    simulateChangeInCells(environment, timeStep) {
         environment.getCellsOfType(CELL_TYPES.Agent).forEach(cell => cell.agent.setHasActedThisTimeStep(false));
         const clonedCells = _.cloneDeep(environment.cells);
         const clonedEnvironment = _.cloneDeep(environment);
@@ -72,6 +73,9 @@ export default class BehaviourController {
                 case 'FruitPlant':
                     this.simulateFruitPlantAction(cell, clonedCells, timeStep);
                     break;
+                case 'Fruit':
+                    this.simulateFruit(cell, clonedCells, timeStep);
+                    break;
                 case 'Dead':
                     this.simulateDeadAction(cell, clonedCells, timeStep);
                     break;
@@ -80,7 +84,29 @@ export default class BehaviourController {
             }
         }));
 
+        this.growFruitRandomly(environment, clonedCells);
+
         return clonedCells;
+    }
+
+    growFruitRandomly(environment, clonedCells) {
+        const environmentArea = environment.width * environment.height;
+
+        let fruitCells = getCellsOfTypeFromProvided(clonedCells, CELL_TYPES.Fruit);
+
+        if (fruitCells.length < MAX_FRUIT_COUNT) {
+            let numberOfItemsToTurnToFruit = 0;
+
+            while(beatsPercentage(.8)) {
+                numberOfItemsToTurnToFruit++;
+            }
+
+            let grassCells = getCellsOfTypeFromProvided(clonedCells, CELL_TYPES.Grass);
+
+            if (grassCells.length > 0) {
+                Util.range(numberOfItemsToTurnToFruit).forEach(i => grassCells.random().updateType(CELL_TYPES.FruitPlant));
+            }
+        }
     }
 
     simulateAgentAction(agentCell, clonedCells, timeStep, clonedEnvironment) {
@@ -200,5 +226,9 @@ export default class BehaviourController {
         if (false) {
             console.log(content);
         }
+    }
+
+    simulateFruit(cell, clonedCells, timeStep) {
+        if (cell.age > 10 + random(10, 5)) cell.updateType(CELL_TYPES.Grass)
     }
 }

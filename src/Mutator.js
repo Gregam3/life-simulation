@@ -13,7 +13,7 @@ export const POINT_CATEGORIES = {
         name: 'reduceHungerBuildRate',
         default: 0,
         perPointBonus: -1,
-        max: 50
+        max: 40
     },
     shitRate: {
         name: 'shitRate',

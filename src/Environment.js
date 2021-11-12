@@ -75,6 +75,10 @@ export const safeGetCell = (cells, x, y) => {
     return cells[y][x];
 }
 
+export const getCellsOfTypeFromProvided = (cells, cellType) => {
+    return cells.flatMap(row => row).filter(cell => cell.type.name === cellType.name);
+}
+
 //generation parameters
 const NAMES = ['Sona', 'Greg', 'Corey', 'Beth', 'Ryxxed', 'Meloonius', 'Agent J', 'Honeybadger', 'Augie', 'Indy', 'Sabine', 'Cotton', 'Flash', 'Whiskey', 'Titus', 'Murphy', 'Astro', 'Amber', 'Godiva', 'Arnie', 'Cobweb', 'Joe', 'Maxine', 'Chi Chi', 'Ryder', 'Bruno', 'Genie', 'Gypsy', 'Wilber', 'Blast', 'Skippy', 'Honey', 'Elvis', 'Solomon', 'Powder', 'Maggie', 'Einstein', 'Quinn', 'Fonzie', 'Clancy', 'Maxwell', 'Natasha', 'Flopsy', 'Presley', 'Penny', 'Tanner', 'Amy', 'Goldie', 'Kelly', 'Butch', 'Ringo', 'Puppy', 'Jersey', 'Chief', 'Kipper', 'Abbey', 'Scooby-doo', 'Chip', 'Abel', 'Sweetie', 'Porky', 'Jelly', 'Paris', 'Silver', 'Maggie-mae', 'Nana', 'Sally', 'Sophie', 'Barbie', 'Chippy', 'Guido', 'Vegas', 'Ziggy', 'Casper', 'Binky', 'Finnegan', 'Gretchen', 'Bucko', 'Poppy', 'Pudge', 'Shaggy', 'Bubba', 'Bessie', 'Summer', 'Bug', 'Monster', 'Dreamer', 'Scout', 'Patsy', 'Kobe', 'Toni', 'Willy', 'Tigger', 'Angel', 'Bosco', 'Kona', 'Chad', 'Tiger', 'Guy', 'Kerry', 'Tiki', 'Picasso', 'Miasy', 'Titan', 'Charlie', 'Mitzi', 'Layla'];
 
@@ -146,7 +150,7 @@ class Environment {
         let newCells = cells;
 
         range(this.generationOptions.agentSpawnCount).forEach(i => {
-            let toBeAgentCell = this.getCellsOfTypeFromProvided(newCells, CELL_TYPES.Grass).random();
+            let toBeAgentCell = getCellsOfTypeFromProvided(newCells, CELL_TYPES.Grass).random();
             toBeAgentCell.type = CELL_TYPES.Agent;
             toBeAgentCell.agent = new Agent(NAMES.random(), toBeAgentCell.x, toBeAgentCell.y, this.generationOptions.agentMutations);
         });
@@ -156,10 +160,6 @@ class Environment {
 
     getCellsOfType(cellType) {
         return this.cells.flatMap(row => row).filter(cell => cell.type.name === cellType.name);
-    }
-
-    getCellsOfTypeFromProvided(cells, cellType) {
-        return cells.flatMap(row => row).filter(cell => cell.type.name === cellType.name);
     }
 }
 

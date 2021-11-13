@@ -1,75 +1,17 @@
-export const CELL_TYPES = {
-    Grass: {
-        name: 'Grass',
-        character: ' ',
-        color: 'green',
-        obstructs: false
-    },
-    Water: {
-        name: 'Water',
-        character: ' ',
-        color: 'blue',
-        obstructs: true
-    },
-    Fruit: {
-        name: 'Fruit',
-        character: '🍎',
-        color: 'green',
-        calories: 500,
-        obstructs: false
-    },
-    Agent: {
-        name: 'Agent',
-        character: '🐒',
-        color: 'green',
-        obstructs: true,
-        isAgent: true
-    },
-    Dead: {
-        name: 'Dead',
-        character: '🍖',
-        color: 'green',
-        calories: 2000,
-        obstructs: false
-    },
-    Shit: {
-        name: 'Shit',
-        character: '💩',
-        color: 'green',
-        obstructs: false
-    },
-    FruitPlant: {
-        name: 'FruitPlant',
-        character: '🌱',
-        color: 'green',
-        obstructs: true
-    },
-    Bones: {
-        name: 'Bones',
-        character: '🦴',
-        color: 'green',
-        obstructs: false,
-        calories: 800
-    },
-    NewFruitPlant: {
-        name: 'NewFruitPlant',
-        character: '🌿',
-        color: 'green',
-        obstructs: true
-    },
-    NewFruit: {
-        name: 'NewFruit',
-        character: '🍅',
-        color: 'green',
-        obstructs: false,
-        calories: 1000
-    }
-}
-
 const DEATH_HUNGER = 2000;
 
 const X_INDEX_PATH = 0;
 const Y_INDEX_PATH = 1;
+
+const AGENT_TYPE = {
+    Monkey: {
+
+    },
+    Apple: {
+
+    },
+
+};
 
 export default class Agent {
     constructor(name, x, y, mutations) {

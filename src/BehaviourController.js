@@ -1,4 +1,4 @@
-import {CELL_TYPES} from "./Agent";
+import {CELL_TYPES} from "./Cell";
 import _ from "lodash";
 import Pather from "./Pather";
 import {beatsPercentage, random, randomBooleanByPercentage, weightedRandom} from "./Util";

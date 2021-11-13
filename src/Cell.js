@@ -1,4 +1,58 @@
-import {CELL_TYPES} from "./Agent";
+/*
+ *  Defaults: {
+ *      character: ' ',
+ *      color: 'green',
+ *      obstructs: false,
+ *      name: 'Name',
+ *      shouldCellExpire: () => null,
+ *      onCellExpire: thisCell => thisCell,
+ *
+ *  }
+ */
+import {beatsPercentage, random} from "./Util";
+import Agent from "./Agent";
+
+const updateCellType = (cell, type) => {
+    cell.updateType(type);
+    return type;
+}
+
+export const CELL_TYPES = {
+    Grass: {},
+    Water: {color: 'blue', obstructs: true},
+    FruitPlant: {character: '🌱', obstructs: true,
+        shouldCellExpire: thisCell => thisCell.age >= 2 + random(3),
+        onCellExpire: thisCell => updateCellType(thisCell, CELL_TYPES.Fruit)
+    },
+    Fruit: {
+        character: '🍎', calories: 500,
+        shouldCellExpire: thisCell => thisCell.age >= 8 + random(3),
+        onCellExpire: thisCell => updateCellType(thisCell, CELL_TYPES.Grass)
+    },
+    Agent: {
+        character: '🐒', obstructs: true, isAgent: true,
+        shouldCellExpire: thisCell => thisCell.agent.hunger >= 2_000,
+        onCellExpire: thisCell => updateCellType(CELL_TYPES.Dead)
+    },
+    Dead: {
+        character: '🍖', calories: 2000,
+        shouldCellExpire: thisCell => thisCell.age >= 10,
+        onCellExpire: thisCell => updateCellType(CELL_TYPES.Bones)
+    },
+    Bones: {
+        character: '🦴', calories: 800,
+        shouldCellExpire: thisCell => thisCell.age >= 10,
+        onCellExpire: thisCell => updateCellType(CELL_TYPES.Grass)
+    },
+    Shit: {
+        character: '💩',
+        shouldCellExpire: thisCell => thisCell.age >= 5,
+        onCellExpire: thisCell => {
+            if(beatsPercentage(1 - thisCell.fertility)) return updateCellType(CELL_TYPES.FruitPlant);
+            else return updateCellType(CELL_TYPES.Grass);
+        }
+    }
+}
 
 export default class Cell {
     constructor(type, y, x, agent = null) {
@@ -8,10 +62,10 @@ export default class Cell {
         this.agent = agent;
         this.cellHistory = [];
         this.age = 0;
+        this.fertility = 0;
         if (this.type.name !== 'Agent') {
             this.addItemToCellHistory();
         }
-        //Used to ensure cells do not take multiple turns during a timestep
     }
 
     updateType(newType) {
@@ -38,7 +92,7 @@ export default class Cell {
     updateToPreviousCell(timeStep) {
         if (timeStep === 1 && this.type.isAgent) {
             this.type = CELL_TYPES.Grass;
-            this.agent = null;
+            this.agent = new Agent();
         } else if (this.cellHistory.length > 0) {
             this.type = this.cellHistory[0].type;
         }

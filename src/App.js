@@ -74,8 +74,8 @@ let perPointSpentLifeExtensionByKey = {};
 const mutator = new Mutator();
 const mutationResults = [];
 
-const WIDTH = 10;
-const HEIGHT = 10;
+const WIDTH = 20;
+const HEIGHT = 20;
 
 function generateNewEnvironment() {
     return new Environment(WIDTH, HEIGHT,
@@ -83,7 +83,7 @@ function generateNewEnvironment() {
             waterBodies: Math.round(WIDTH / 1.5),
             treeChance1InX: 10,
             agentChance1InX: 50,
-            agentSpawnCount: 4,
+            agentSpawnCount: 8,
             agentMutations: mutator.generateRandomPointSpread()
         });
 }
@@ -251,7 +251,7 @@ class App extends React.Component {
 
     renderCell(cell) {
         return <span style={{
-            backgroundColor: cell.type.color,
+            backgroundColor: cell.getCellColour(),
             width: '25px',
             height: '25px',
             display: 'inline-block'

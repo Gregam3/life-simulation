@@ -4,12 +4,39 @@ import Pather from "./Pather";
 import {beatsPercentage, random, randomBooleanByPercentage, weightedRandom} from "./Util";
 
 const Util = require("./Util");
-const {safeGetCell, getCellsOfTypeFromProvided} = require("./Environment");
 
 const cartesianProduct = items =>
     items.flatMap(outerIndex => items.flatMap(innerIndex => [{xChange: innerIndex, yChange: outerIndex}]));
 
-const generateVisionRange = visionRange => cartesianProduct(_.range(visionRange, visionRange * -1));
+export const safeGetCell = (cells, x, y) => {
+    if (x > cells[0].length - 1 || y > cells.length - 1 || x < 0 || y < 0) return null;
+
+    return cells[y][x];
+}
+
+export const getCellsOfTypeFromProvided = (cells, cellType) => {
+    return cells.flatMap(row => row).filter(cell => cell.type.name === cellType.name);
+}
+
+const generateSurroundingCells = visionRange => cartesianProduct(_.range(visionRange, visionRange * -1));
+export const generateCellsInSightRange = (cell, cells) => {
+    return generateSurroundingCells(cell.agent.mutations.visionRange).flatMap(positionChange => safeGetCell(
+            cells,
+            cell.x + positionChange.xChange,
+            cell.y + positionChange.yChange
+        )
+    ).filter(cell => cell !== null);
+}
+
+export const generateCellsInRange = (cell, cells, range) => {
+    return generateSurroundingCells(range).flatMap(positionChange => safeGetCell(
+            cells,
+            cell.x + positionChange.xChange,
+            cell.y + positionChange.yChange
+        )
+    ).filter(cell => cell !== null);
+}
+
 const movementRange = cartesianProduct(Util.trueRange(1, -1));
 const PATHER = new Pather();
 const MAX_TIME_STEP = 300;
@@ -63,26 +90,11 @@ export default class BehaviourController {
 
             cell.age++;
             switch (cell.type.name) {
-                //TODO put inside of types themselves
                 case 'Agent':
                     this.simulateAgentAction(cell, clonedCells, timeStep, clonedEnvironment);
                     break;
-                case 'Shit':
-                    this.simulateShitAction(cell, clonedCells, timeStep);
-                    break;
-                case 'FruitPlant':
-                    this.simulateFruitPlantAction(cell);
-                    break;
-                case 'NewFruitPlant':
-                    this.simulateFruitPlantAction(cell);
-                    break;
-                case 'Fruit':
-                    this.simulateFruit(cell, clonedCells, timeStep);
-                    break;
-                case 'Dead':
-                    this.simulateDeadAction(cell, clonedCells, timeStep);
-                    break;
                 default:
+                    if(cell.type.shouldCellExpire(cell)) cell.type.onCellExpire(cell);
                     break;
             }
         }));
@@ -93,8 +105,6 @@ export default class BehaviourController {
     }
 
     growFruitRandomly(environment, clonedCells) {
-        const environmentArea = environment.width * environment.height;
-
         let fruitCells = getCellsOfTypeFromProvided(clonedCells, CELL_TYPES.Fruit);
 
         if (fruitCells.length < MAX_FRUIT_COUNT) {
@@ -108,6 +118,10 @@ export default class BehaviourController {
 
             if (grassCells.length > 0) {
                 Util.range(numberOfItemsToTurnToFruit).forEach(i => grassCells.random().updateType(CELL_TYPES.FruitPlant));
+                grassCells.filter(cell => cell.fertility >= 1).forEach(cell =>{
+                    cell.updateType(CELL_TYPES.FruitPlant);
+                    cell.fertility -= 1;
+                });
             }
         }
     }
@@ -136,28 +150,6 @@ export default class BehaviourController {
         }
     }
 
-    simulateShitAction(shitCell, clonedCells, timeStep) {
-        if (shitCell.age > 5) {
-            if (randomBooleanByPercentage(0.5)) {
-                shitCell.updateType(CELL_TYPES.FruitPlant);
-            } else {
-                shitCell.updateType(CELL_TYPES.Grass);
-            }
-        }
-    }
-
-    simulateFruitPlantAction(fruitPlantCell) {
-        if (fruitPlantCell.age > 2 && random(1, 0) === 1) {
-            fruitPlantCell.updateType(CELL_TYPES.Fruit);
-        }
-    }
-
-    simulateFruitPlantAction(fruitPlantCell) {
-        if (fruitPlantCell.age > 2 && random(1, 0) === 1) {
-            fruitPlantCell.updateType(CELL_TYPES.NewFruit);
-        }
-    }
-
     shouldAgentShit(agent) {
         let max = 20 * (2000 / (Math.abs(2000 - agent.hunger)));
         return weightedRandom(0, max) > (max * (1 - (agent.mutations.shitRate * 0.2)));
@@ -180,7 +172,7 @@ export default class BehaviourController {
     }
 
     getPathToFood(agentCell, environment) {
-        const cellsInSenseRange = this.generateCellsInSightRange(agentCell, environment.cells);
+        const cellsInSenseRange = generateCellsInSightRange(agentCell, environment.cells);
         const foodCellsInRange = cellsInSenseRange.filter(cell => cell.type.calories > 0).sort(cell => cell.type.calories).reverse();
 
         if (foodCellsInRange.length > 0) {
@@ -189,15 +181,6 @@ export default class BehaviourController {
         }
 
         return null;
-    }
-
-    generateCellsInSightRange = (agentCell, cells) => {
-        return generateVisionRange(agentCell.agent.mutations.visionRange).flatMap(positionChange => safeGetCell(
-                cells,
-                agentCell.x + positionChange.xChange,
-                agentCell.y + positionChange.yChange
-            )
-        ).filter(cell => cell !== null);
     }
 
     generateCellsInMovementRange = (agentCell, cells) => {

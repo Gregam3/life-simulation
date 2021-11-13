@@ -1,7 +1,8 @@
 import React from "react";
-import Agent, {CELL_TYPES} from "./Agent";
-import Cell from "./Cell";
+import Agent from "./Agent";
+import Cell, {CELL_TYPES} from "./Cell";
 import {random, randomKey} from "./Util";
+import {generateCellsInRange} from "./BehaviourController";
 
 const range = (i) => {
     return [...Array(i).keys()];
@@ -95,9 +96,8 @@ class Environment {
         console.log('Generating environment')
         const grassPlaneCells = this.createGrassPlaneCells();
         const withWaterCells = this.populateWater(grassPlaneCells);
-        const withTreeCells = this.populateFruit(withWaterCells);
-        // const withNewFruits = this.populateNewFruit(withTreeCells);
-        return this.populateAgents(withTreeCells);
+        this.setCellFertilities(withWaterCells);
+        return this.populateAgents(withWaterCells);
     }
 
     createGrassPlaneCells() {
@@ -147,16 +147,6 @@ class Environment {
         }));
     }
 
-    populateNewFruit(cells) {
-        return cells.map(rows => rows.map(cell => {
-            const r = random(this.generationOptions.treeChance1InX);
-            if (cell.type === CELL_TYPES.Grass && r === this.generationOptions.treeChance1InX) {
-                cell.updateType(CELL_TYPES.NewFruit);
-            }
-            return cell;
-        }));
-    }
-
     populateAgents(cells) {
         let newCells = cells;
 
@@ -171,6 +161,18 @@ class Environment {
 
     getCellsOfType(cellType) {
         return this.cells.flatMap(row => row).filter(cell => cell.type.name === cellType.name);
+    }
+
+    setCellFertilities(withWaterCells) {
+        getCellsOfTypeFromProvided(withWaterCells, CELL_TYPES.Grass)
+            .forEach(cell => cell.fertility = this.getCellFertility(cell, withWaterCells))
+    }
+
+    getCellFertility(cell, withWaterCells) {
+        let halfWidth = Math.floor(this.width / 2);
+        for (let i = 1; i <= halfWidth; i++) {
+            if (generateCellsInRange(cell, withWaterCells, i).some(c => c.type === CELL_TYPES.Water)) return 0.8 / i + (Math.random() * .5);
+        }
     }
 }
 
